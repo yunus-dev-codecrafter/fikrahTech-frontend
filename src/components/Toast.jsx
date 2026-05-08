@@ -12,7 +12,7 @@ const Toast = ({ message, type = 'info', onClose, duration = 3000 }) => {
   const getToastStyles = () => {
     switch (type) {
       case 'success':
-        return 'bg-green-500';
+        return 'bg-emerald-500'; // Using Emerald Green
       case 'error':
         return 'bg-red-500';
       case 'warning':

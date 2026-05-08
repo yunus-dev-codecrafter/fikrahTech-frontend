@@ -1,17 +1,13 @@
 import React, { useState } from 'react';
 import axiosInstance from '../api/axios';
+import LoadingSpinner from './LoadingSpinner'; // Import LoadingSpinner
 
 const RegisterSchoolModal = ({ isOpen, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    principalName: '',
-    principalEmail: ''
+    schoolName: '', // Changed to schoolName as per requirement
+    proprietorName: '', // Changed to proprietorName
+    proprietorEmail: '', // Changed to proprietorEmail
+    proprietorPassword: '', // Changed to proprietorPassword
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -29,7 +25,7 @@ const RegisterSchoolModal = ({ isOpen, onClose, onSuccess }) => {
     setError('');
 
     try {
-      const response = await axiosInstance.post('/schools/register', formData);
+      const response = await axiosInstance.post('/admin/schools/register', formData); // Corrected endpoint as per requirement
       onSuccess(response.data);
       onClose();
       setFormData({
@@ -55,7 +51,7 @@ const RegisterSchoolModal = ({ isOpen, onClose, onSuccess }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-4"> {/* Adjusted max-w to md */}
           <h2 className="text-2xl font-bold text-gray-800">Register New School</h2>
           <button
             onClick={onClose}
@@ -66,13 +62,12 @@ const RegisterSchoolModal = ({ isOpen, onClose, onSuccess }) => {
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 School Name *
@@ -83,11 +78,9 @@ const RegisterSchoolModal = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.name}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500" {/* Emerald ring */}
               />
             </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Email *
               </label>
@@ -97,11 +90,9 @@ const RegisterSchoolModal = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Phone *
               </label>
@@ -111,11 +102,9 @@ const RegisterSchoolModal = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.phone}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Principal Name *
               </label>
@@ -125,11 +114,9 @@ const RegisterSchoolModal = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.principalName}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Principal Email *
               </label>
@@ -139,11 +126,9 @@ const RegisterSchoolModal = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.principalEmail}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 City *
               </label>
@@ -153,11 +138,9 @@ const RegisterSchoolModal = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.city}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 State *
               </label>
@@ -167,11 +150,9 @@ const RegisterSchoolModal = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.state}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
-
-            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 ZIP Code *
               </label>
@@ -181,12 +162,9 @@ const RegisterSchoolModal = ({ isOpen, onClose, onSuccess }) => {
                 value={formData.zipCode}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
-          </div>
-
-          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Address *
             </label>
@@ -211,9 +189,16 @@ const RegisterSchoolModal = ({ isOpen, onClose, onSuccess }) => {
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors disabled:opacity-50 flex items-center justify-center"
             >
-              {loading ? 'Registering...' : 'Register School'}
+              {loading ? (
+                <>
+                  <LoadingSpinner size="sm" color="text-white" />
+                  <span className="ml-2">Registering...</span>
+                </>
+              ) : (
+                'Register School'
+              )}
             </button>
           </div>
         </form>
