@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import { Menu, X, Home, Building2, Users, Settings, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import Sidebar from '../components/Sidebar';
+import TopNav from '../components/TopNav';
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const { user, logout } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      setIsMobile(window.innerWidth < 1024);
     };
 
     checkMobile();
@@ -31,48 +34,48 @@ const AdminLayout = () => {
     closeSidebar();
   };
 
+  const getCurrentPage = () => {
+    const path = location.pathname;
+    if (path.includes('/dashboard')) return 'dashboard';
+    if (path.includes('/schools')) return 'schools';
+    if (path.includes('/users')) return 'users';
+    if (path.includes('/settings')) return 'settings';
+    return 'dashboard';
+  };
+
   return (
-    <div className="flex h-screen bg-surface-50">
-      {/* Mobile Sidebar Overlay */}
-      {isMobile && (
-        <div 
-          className={`fixed inset-0 z-50 transition-transform duration-300 ease-in-out lg:hidden ${
-            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
-          onClick={closeSidebar}
-        >
-          <div className="fixed inset-0 bg-black bg-opacity-50" />
-        </div>
-      )}
-
+    <div className="min-h-screen bg-slate-50">
       {/* Sidebar */}
-      <div className={`
-        fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out
-        ${isMobile ? 'translate-x-0' : 'translate-x-0'}
-        fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
-        <Sidebar />
-      </div>
+      <Sidebar 
+        isOpen={sidebarOpen} 
+        onClose={closeSidebar}
+        currentPage={getCurrentPage()}
+      />
 
-      {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Top Navbar */}
-        <header className="bg-white shadow-sm border-b border-gray-200 lg:hidden">
-          <div className="flex items-center justify-between px-4 py-3">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-            >
-              <Menu size={24} />
-            </button>
-            <h1 className="text-lg font-semibold text-navy-800">FikrahTech Admin</h1>
-            <div className="w-10"></div> {/* Spacer for balance */}
-          </div>
-        </header>
+      {/* Main Content */}
+      <div className="lg:pl-64">
+        {/* Top Navigation - Desktop Only */}
+        <div className="hidden lg:block">
+          <TopNav 
+            onMenuClick={toggleSidebar}
+            currentPage={getCurrentPage()}
+          />
+        </div>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        {/* Mobile Menu Button */}
+        <div className="lg:hidden fixed top-4 left-4 z-50">
+          <button
+            onClick={toggleSidebar}
+            className="p-3 rounded-lg bg-white bg-opacity-95 backdrop-blur-md shadow-premium"
+          >
+            <svg className="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Page Content */}
+        <main className="p-4 sm:p-6 lg:p-8">
           <Outlet />
         </main>
       </div>

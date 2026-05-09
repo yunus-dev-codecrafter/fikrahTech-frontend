@@ -23,57 +23,95 @@ const Sidebar = () => {
             isActive('/admin/dashboard') ? 'bg-navy-700 text-emerald-300 border-r-4 border-emerald-500' : ''
           }`}
         >
-          <Home className="mr-3" size={20} />
-          Dashboard
-        </Link>
-        <Link
-          to="/admin/schools" // Placeholder for Schools page
-          className={`flex items-center px-6 py-3 text-white hover:bg-navy-700 hover:text-emerald-300 transition-colors ${
-            isActive('/admin/schools') ? 'bg-navy-700 text-emerald-300 border-r-4 border-emerald-500' : ''
-          }`}
-        >
-          <Building2 className="mr-3" size={20} />
-          Schools
-        </Link>
-        <Link
-          to="/admin/users" // Placeholder for Users page
-          className={`flex items-center px-6 py-3 text-white hover:bg-navy-700 hover:text-emerald-300 transition-colors ${
-            isActive('/admin/users') ? 'bg-navy-700 text-emerald-300 border-r-4 border-emerald-500' : ''
-          }`}
-        >
-          <Users className="mr-3" size={20} />
-          Users
-        </Link>
-        <Link
-          to="/admin/settings" // Placeholder for Settings page
-          className={`flex items-center px-6 py-3 text-white hover:bg-navy-700 hover:text-emerald-300 transition-colors ${
-            isActive('/admin/settings') ? 'bg-navy-700 text-emerald-300 border-r-4 border-emerald-500' : ''
-          }`}
-        >
-          <Settings className="mr-3" size={20} />
-          Settings
-        </Link>
-      </nav>
 
-      <div className="p-6 border-t border-navy-700">
-        <div className="flex items-center mb-4">
-          <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-semibold">
-            {user?.name?.charAt(0) || 'A'}
+      {/* Sidebar */}
+      <div className={`
+        fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out
+        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:translate-x-0
+      `}>
+        {/* Frosted Glass Background */}
+        <div className="h-full bg-white bg-opacity-10 backdrop-blur-md border-r border-white border-opacity-20">
+          {/* Logo Section */}
+          <div className="p-6 border-b border-white border-opacity-20">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-bold text-white">FikrahTech</h2>
+              <button
+                onClick={onClose}
+                className="lg:hidden p-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition-colors"
+              >
+                <X size={20} className="text-white" />
+              </button>
+            </div>
           </div>
-          <div className="ml-3">
-            <p className="text-sm font-medium text-gray-700">{user?.name || 'Admin'}</p>
-            <p className="text-xs text-gray-500">{user?.email || 'admin@example.com'}</p>
+
+          {/* Navigation */}
+          <nav className="flex-1 p-4 overflow-y-auto">
+            <div className="space-y-2">
+              {menuItems.map((item, index) => (
+                <a
+                  key={index}
+                  href={item.href}
+                  className={`
+                    flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200
+                    ${item.active 
+                      ? 'bg-emerald-500 text-white border-l-4 border-emerald-300' 
+                      : 'text-white hover:bg-white hover:bg-opacity-10 hover:border-l-4 hover:border-emerald-500'
+                    }
+                  `}
+                >
+                  <item.icon size={20} className="mr-3" />
+                  <span>{item.label}</span>
+                </a>
+              ))}
+            </div>
+          </nav>
+
+          {/* User Profile Section */}
+          <div className="p-6 border-t border-white border-opacity-20">
+            <div className="relative">
+              <button
+                onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                className="w-full flex items-center p-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition-colors"
+              >
+                <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+                  <User size={20} />
+                </div>
+                <div className="ml-3 flex-1 text-left">
+                  <p className="text-sm font-medium text-white">Admin User</p>
+                  <p className="text-xs text-white text-opacity-70">admin@fikrahtech.com</p>
+                </div>
+                <ChevronDown 
+                  size={16} 
+                  className={`text-white transition-transform ${
+                    userDropdownOpen ? 'rotate-180' : ''
+                  }`} 
+                />
+              </button>
+
+              {/* Dropdown Menu */}
+              {userDropdownOpen && (
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-premium">
+                  <a
+                    href="/admin/profile"
+                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                  >
+                    <User size={16} className="mr-3" />
+                    Profile
+                  </a>
+                  <button
+                    className="w-full flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut size={16} className="mr-3" />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-        <button
-          onClick={logout}
-          className="w-full flex items-center justify-center px-4 py-2 text-sm text-red-400 bg-navy-700 hover:bg-red-800 hover:text-white rounded-lg transition-colors"
-        >
-          <LogOut className="mr-2" size={18} />
-          Logout
-        </button>
       </div>
-    </div>
+    </>
   );
 };
 
