@@ -1,28 +1,35 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Home, Building2, Users, Settings, LogOut } from 'lucide-react'; // Import Lucide icons
+import React, { useState } from 'react';
+import { 
+  Home, 
+  Building2, 
+  Users, 
+  Settings, 
+  Menu, 
+  X,
+  LogOut,
+  ChevronDown,
+  User
+} from 'lucide-react';
 
-const Sidebar = () => {
-  const { user, logout } = useAuth();
-  const location = useLocation();
+const Sidebar = ({ isOpen, onClose, currentPage }) => {
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
-  const isActive = (path) => location.pathname === path;
+  const menuItems = [
+    { icon: Home, label: 'Dashboard', href: '/admin/dashboard', active: currentPage === 'dashboard' },
+    { icon: Building2, label: 'Schools', href: '/admin/schools', active: currentPage === 'schools' },
+    { icon: Users, label: 'Users', href: '/admin/users', active: currentPage === 'users' },
+    { icon: Settings, label: 'Settings', href: '/admin/settings', active: currentPage === 'settings' },
+  ];
 
   return (
-    <div className="w-64 bg-navy-800 text-white shadow-lg flex flex-col"> {/* Deep Navy background */}
-      <div className="p-6 border-b border-navy-700">
-        <h2 className="text-2xl font-bold text-emerald-400">FikrahTech</h2> {/* Emerald Green for branding */}
-        <p className="text-sm text-gray-600 mt-1">Admin Panel</p>
-      </div>
-      
-      <nav className="mt-6">
-        <Link
-          to="/admin/dashboard"
-          className={`flex items-center px-6 py-3 text-white hover:bg-navy-700 hover:text-emerald-300 transition-colors ${
-            isActive('/admin/dashboard') ? 'bg-navy-700 text-emerald-300 border-r-4 border-emerald-500' : ''
-          }`}
-        >
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={onClose}
+        />
+      )}
 
       {/* Sidebar */}
       <div className={`
