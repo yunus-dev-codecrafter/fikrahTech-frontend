@@ -32,22 +32,93 @@ export default {
           900: '#064e3b',
         }
       },
-      fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+      
+      // Strict spacing system (4px base unit)
+      spacing: {
+        0: '0px',
+        1: '4px',
+        2: '8px',
+        3: '12px',
+        4: '16px',
+        5: '20px',
+        6: '24px',
+        8: '32px',
+        10: '40px',
+        12: '48px',
+        16: '64px',
+        20: '80px',
+        24: '96px',
+        32: '128px',
       },
-      animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-in': 'slideIn 0.3s ease-out',
+      
+      // Fluid typography using clamp()
+      fontSize: {
+        'xs': ['clamp(0.75rem, 0.75rem, 0.75rem)'],
+        'sm': ['clamp(0.875rem, 0.875rem, 0.875rem)'],
+        'base': ['clamp(1rem, 1rem, 1rem)'],
+        'lg': ['clamp(1.125rem, 1.125rem, 1.125rem)'],
+        'xl': ['clamp(1.25rem, 1.25rem, 1.25rem)'],
+        '2xl': ['clamp(1.5rem, 1.5rem, 1.5rem)'],
+        '3xl': ['clamp(1.875rem, 1.875rem, 1.875rem)'],
+        '4xl': ['clamp(2.25rem, 2.25rem, 2.25rem)'],
+        '5xl': ['clamp(3rem, 3rem, 3rem)'],
       },
+      
+      // Glassmorphism utilities
+      backdropBlur: {
+        xs: 'blur-xs',
+        sm: 'blur-sm',
+        md: 'blur-md',
+        lg: 'blur-lg',
+        xl: 'blur-xl',
+      },
+      
+      // Animation utilities
+      transitionDuration: {
+        'fast': '150ms',
+        'normal': '300ms',
+        'slow': '500ms',
+      },
+      
+      // Custom shadows
+      boxShadow: {
+        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+        'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+        'button': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+      },
+      
+      // Custom animations
       keyframes: {
-        fadeIn: {
+        'slide-up': {
+          '0%': { transform: 'translateY(100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        'fade-in': {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
         },
-        slideIn: {
+        'scale-in': {
+          '0%': { transform: 'scale(0.95)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+        'pulse-glow': {
+          '0%, 100%': { boxShadow: '0 0 0 0 rgba(99, 102, 241, 0)' },
+          '50%': { boxShadow: '0 0 20px 10px rgba(99, 102, 241, 0.5)' },
+        },
+        'slide-in': {
           '0%': { transform: 'translateX(-100%)' },
           '100%': { transform: 'translateX(0)' },
         },
+      },
+      animation: {
+        'slide-up': 'slide-up 0.3s ease-out',
+        'fade-in': 'fade-in 0.5s ease-in-out',
+        'scale-in': 'scale-in 0.2s ease-out',
+        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+        'slide-in': 'slide-in 0.3s ease-out',
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
     },
   },

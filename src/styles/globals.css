@@ -1,0 +1,308 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* CSS Variables for Theme System */
+:root {
+  --color-primary-50: theme('colors.primary.50');
+  --color-primary-100: theme('colors.primary.100');
+  --color-primary-200: theme('colors.primary.200');
+  --color-primary-300: theme('colors.primary.300');
+  --color-primary-400: theme('colors.primary.400');
+  --color-primary-500: theme('colors.primary.500');
+  --color-primary-600: theme('colors.primary.600');
+  --color-primary-700: theme('colors.primary.700');
+  --color-primary-800: theme('colors.primary.800');
+  --color-primary-900: theme('colors.primary.900');
+
+  --color-secondary-50: theme('colors.secondary.50');
+  --color-secondary-100: theme('colors.secondary.100');
+  --color-secondary-200: theme('colors.secondary.200');
+  --color-secondary-300: theme('colors.secondary.300');
+  --color-secondary-400: theme('colors.secondary.400');
+  --color-secondary-500: theme('colors.secondary.500');
+  --color-secondary-600: theme('colors.secondary.600');
+  --color-secondary-700: theme('colors.secondary.700');
+  --color-secondary-800: theme('colors.secondary.800');
+  --color-secondary-900: theme('colors.secondary.900');
+
+  --color-accent-50: theme('colors.accent.50');
+  --color-accent-100: theme('colors.accent.100');
+  --color-accent-200: theme('colors.accent.200');
+  --color-accent-300: theme('colors.accent.300');
+  --color-accent-400: theme('colors.accent.400');
+  --color-accent-500: theme('colors.accent.500');
+  --color-accent-600: theme('colors.accent.600');
+  --color-accent-700: theme('colors.accent.700');
+  --color-accent-800: theme('colors.accent.800');
+  --color-accent-900: theme('colors.accent.900');
+
+  --color-surface-50: theme('colors.surface.50');
+  --color-surface-100: theme('colors.surface.100');
+  --color-surface-200: theme('colors.surface.200');
+  --color-surface-300: theme('colors.surface.300');
+  --color-surface-400: theme('colors.surface.400');
+  --color-surface-500: theme('colors.surface.500');
+  --color-surface-600: theme('colors.surface.600');
+  --color-surface-700: theme('colors.surface.700');
+  --color-surface-800: theme('colors.surface.800');
+  --color-surface-900: theme('colors.surface.900');
+
+  --glass-white: theme('colors.glass.white');
+  --glass-dark: theme('colors.glass.dark');
+  --glass-border: theme('colors.glass.border');
+
+  --shadow-glass: theme('boxShadow.glass');
+  --shadow-card: theme('boxShadow.card');
+  --shadow-button: theme('boxShadow.button');
+
+  --backdrop-blur-xs: theme('backdropBlur.xs');
+  --backdrop-blur-sm: theme('backdropBlur.sm');
+  --backdrop-blur-md: theme('backdropBlur.md');
+  --backdrop-blur-lg: theme('backdropBlur.lg');
+  --backdrop-blur-xl: theme('backdropBlur.xl');
+
+  --transition-fast: theme('transitionDuration.fast');
+  --transition-normal: theme('transitionDuration.normal');
+  --transition-slow: theme('transitionDuration.slow');
+}
+
+/* Dark Theme Variables */
+[data-theme="dark"] {
+  --color-surface-50: theme('colors.surface.900');
+  --color-surface-100: theme('colors.surface.800');
+  --color-surface-200: theme('colors.surface.700');
+  --color-surface-300: theme('colors.surface.600');
+  --color-surface-400: theme('colors.surface.500');
+  --color-surface-500: theme('colors.surface.400');
+  --color-surface-600: theme('colors.surface.300');
+  --color-surface-700: theme('colors.surface.200');
+  --color-surface-800: theme('colors.surface.100');
+  --color-surface-900: theme('colors.surface.50');
+}
+
+/* Base Layer Styles */
+@layer base {
+  /* Smooth Scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-surface-100);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-surface-300);
+    border-radius: 4px;
+    transition: background-color var(--transition-normal);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-surface-400);
+  }
+
+  /* Firefox */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-surface-100) var(--color-surface-300);
+  }
+
+  /* Remove default margins and paddings */
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: theme('fontFamily.sans');
+    background: var(--color-surface-50);
+    color: var(--color-surface-900);
+    transition: background-color var(--transition-normal);
+  }
+
+  /* Focus visible improvements */
+  *:focus-visible {
+    outline: 2px solid var(--color-accent-500);
+    outline-offset: 2px;
+  }
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    *:focus-visible {
+      outline-width: 3px;
+    }
+  }
+
+  /* Reduce motion support */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* Component Layer Styles */
+@layer components {
+  /* Glassmorphism Base */
+  .glass {
+    background: var(--glass-white);
+    backdrop-filter: blur(var(--backdrop-blur-md));
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-glass);
+  }
+
+  .glass-dark {
+    background: var(--glass-dark);
+    backdrop-filter: blur(var(--backdrop-blur-md));
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-glass);
+  }
+
+  /* Modern Card */
+  .card {
+    background: var(--color-surface-50);
+    border: 1px solid var(--color-surface-200);
+    border-radius: theme('borderRadius.lg');
+    box-shadow: var(--shadow-card);
+    transition: all var(--transition-normal);
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-button);
+  }
+
+  /* Modern Button */
+  .btn {
+    position: relative;
+    overflow: hidden;
+    transition: all var(--transition-fast);
+  }
+
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.5);
+    transform: translate(-50%, -50%);
+    transition: width var(--transition-fast), height var(--transition-fast);
+  }
+
+  .btn:active::before {
+    width: 300px;
+    height: 300px;
+  }
+
+  /* Micro Interactions */
+  .micro-interact {
+    transition: transform var(--transition-fast);
+  }
+
+  .micro-interact:active {
+    transform: scale(0.95);
+  }
+
+  /* Loading Skeleton */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--color-surface-200) 0%,
+      var(--color-surface-100) 50%,
+      var(--color-surface-200) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Floating Labels */
+  .floating-label {
+    position: absolute;
+    left: theme('spacing.4');
+    top: -theme('spacing.2');
+    background: var(--color-surface-50);
+    padding: theme('spacing.1') theme('spacing.2');
+    font-size: theme('fontSize.sm');
+    color: var(--color-surface-700);
+    transition: all var(--transition-fast);
+    pointer-events: none;
+  }
+
+  .input:focus + .floating-label,
+  .input:not(:placeholder-shown) + .floating-label {
+    top: -theme('spacing.3');
+    font-size: theme('fontSize.xs');
+    color: var(--color-primary-600);
+  }
+}
+
+/* Utilities Layer Styles */
+@layer utilities {
+  /* GPU Accelerated Animations */
+  .gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform, opacity;
+  }
+
+  /* Responsive Grid */
+  .bento-grid {
+    display: grid;
+    gap: theme('spacing.6');
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  @media (max-width: 768px) {
+    .bento-grid {
+      grid-template-columns: 1fr;
+      gap: theme('spacing.4');
+    }
+  }
+
+  /* Mobile Optimizations */
+  .mobile-drawer {
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+  }
+
+  .mobile-drawer.open {
+    transform: translateX(0);
+  }
+
+  /* Custom Animations */
+  .animate-slide-up {
+    animation: var(--animation-slide-up);
+  }
+
+  .animate-fade-in {
+    animation: var(--animation-fade-in);
+  }
+
+  .animate-scale-in {
+    animation: var(--animation-scale-in);
+  }
+
+  .animate-pulse-glow {
+    animation: var(--animation-pulse-glow);
+  }
+}

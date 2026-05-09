@@ -1,23 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
-import Sidebar from '../components/Sidebar';
+import { Menu, X, Home, Building2, Users, Settings, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const { user, logout } = useAuth();
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    closeSidebar();
+  };
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      {/* Mobile sidebar overlay */}
-      {sidebarOpen && (
+    <div className="flex h-screen bg-surface-50">
+      {/* Mobile Sidebar Overlay */}
+      {isMobile && (
         <div 
-          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+          className={`fixed inset-0 z-50 transition-transform duration-300 ease-in-out lg:hidden ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+          onClick={closeSidebar}
+        >
+          <div className="fixed inset-0 bg-black bg-opacity-50" />
+        </div>
       )}
-      
+
       {/* Sidebar */}
       <div className={`
+        fixed inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out
+        ${isMobile ? 'translate-x-0' : 'translate-x-0'}
         fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
       `}>
