@@ -28,7 +28,6 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    e.stopPropagation(); // Additional prevention
     setLoading(true);
     setError('');
 
@@ -47,6 +46,7 @@ const Login = () => {
         navigate('/admin/dashboard');
       }, 1000);
     } catch (err) {
+      console.error('SERVER_ERROR:', err.response?.data);
       console.error('Login Error Details:', err.response?.data);
       const errorMessage = err.response?.data?.message || 'Login failed. Please try again.';
       setError(errorMessage);
