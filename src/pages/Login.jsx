@@ -32,6 +32,8 @@ const Login = () => {
     setLoading(true);
     setError('');
 
+    console.log('Login Attempt Data:', formData);
+
     try {
       const response = await axiosInstance.post('/auth/login', formData);
       const { token, user } = response.data;
@@ -45,6 +47,7 @@ const Login = () => {
         navigate('/admin/dashboard');
       }, 1000);
     } catch (err) {
+      console.error('Login Error Details:', err.response?.data);
       const errorMessage = err.response?.data?.message || 'Login failed. Please try again.';
       setError(errorMessage);
       setToastMessage(errorMessage);
