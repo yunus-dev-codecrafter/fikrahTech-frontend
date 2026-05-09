@@ -28,6 +28,7 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Additional prevention
     setLoading(true);
     setError('');
 
