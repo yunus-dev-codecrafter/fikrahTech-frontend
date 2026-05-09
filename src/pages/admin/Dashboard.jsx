@@ -138,11 +138,7 @@ const Dashboard = () => {
             </div>
           </div>
           {change && (
-            <div className={`text-sm font-semibold px-3 py-1 rounded-full ${
-              change > 0 ? 'bg-emerald-100 text-emerald-700' : 
-              change < 0 ? 'bg-red-100 text-red-700' : 
-              'bg-slate-100 text-slate-700'
-            }`}>
+            <div className={`text-sm font-semibold px-3 py-1 rounded-full ${change > 0 ? 'bg-emerald-100 text-emerald-700' : change < 0 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'}`}>
               {change > 0 ? '+' : ''}
               {Math.abs(change)}%
             </div>
@@ -277,12 +273,7 @@ const Dashboard = () => {
               ].map((action, index) => (
                 <button
                   key={index}
-                  className={`w-full flex items-center p-3 rounded-lg hover:bg-slate-50 transition-colors text-left ${
-                    action.color === 'emerald' ? 'hover:text-emerald-600' :
-                    action.color === 'blue' ? 'hover:text-blue-600' :
-                    action.color === 'purple' ? 'hover:text-purple-600' :
-                    'hover:text-amber-600'
-                  }`}
+                  className="w-full flex items-center p-3 rounded-lg hover:bg-slate-50 transition-colors text-left hover:text-emerald-600"
                 >
                   <action.icon size={18} className="mr-3 text-slate-600" />
                   <span className="text-sm font-medium text-slate-700">{action.label}</span>
@@ -291,8 +282,9 @@ const Dashboard = () => {
             )}
           </div>
         </div>
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 };
