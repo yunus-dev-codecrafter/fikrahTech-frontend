@@ -37,17 +37,17 @@ const Sidebar = ({ isOpen, onClose, currentPage }) => {
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         lg:translate-x-0
       `}>
-        {/* Frosted Glass Background */}
-        <div className="h-full bg-white bg-opacity-10 backdrop-blur-md border-r border-white border-opacity-20">
+        {/* Dark Navy Background */}
+        <div className="h-full bg-slate-950 border-r border-slate-800">
           {/* Logo Section */}
-          <div className="p-6 border-b border-white border-opacity-20">
+          <div className="p-6 border-b border-slate-800">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-white">FikrahTech</h2>
+              <h2 className="text-xl font-bold text-emerald-400">FikrahTech</h2>
               <button
                 onClick={onClose}
-                className="lg:hidden p-2 rounded-lg hover:bg-white hover:bg-opacity-10 transition-colors"
+                className="lg:hidden p-2 rounded-lg hover:bg-slate-800 transition-colors"
               >
-                <X size={20} className="text-white" />
+                <X size={20} className="text-slate-400" />
               </button>
             </div>
           </div>
@@ -62,12 +62,12 @@ const Sidebar = ({ isOpen, onClose, currentPage }) => {
                   className={`
                     flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200
                     ${item.active 
-                      ? 'bg-emerald-500 text-white border-l-4 border-emerald-300' 
-                      : 'text-white hover:bg-white hover:bg-opacity-10 hover:border-l-4 hover:border-emerald-500'
+                      ? 'bg-emerald-500/10 text-emerald-400 border-l-4 border-emerald-400' 
+                      : 'text-slate-400 hover:bg-emerald-500/10 hover:text-emerald-400 hover:border-l-4 hover:border-emerald-400'
                     }
                   `}
                 >
-                  <item.icon size={20} className="mr-3" />
+                  <item.icon size={20} className="mr-3 flex-shrink-0" />
                   <span>{item.label}</span>
                 </a>
               ))}
@@ -75,22 +75,22 @@ const Sidebar = ({ isOpen, onClose, currentPage }) => {
           </nav>
 
           {/* User Profile Section */}
-          <div className="p-6 border-t border-white border-opacity-20">
+          <div className="p-6 border-t border-slate-800">
             <div className="relative">
               <button
                 onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                className="w-full flex items-center p-3 rounded-lg hover:bg-white hover:bg-opacity-10 transition-colors"
+                className="w-full flex items-center p-3 rounded-lg hover:bg-slate-800 transition-colors"
               >
-                <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+                <div className="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
                   <User size={20} />
                 </div>
                 <div className="ml-3 flex-1 text-left">
-                  <p className="text-sm font-medium text-white">Admin User</p>
-                  <p className="text-xs text-white text-opacity-70">admin@fikrahtech.com</p>
+                  <p className="text-sm font-medium text-slate-200">Admin User</p>
+                  <p className="text-xs text-slate-400">admin@fikrahtech.com</p>
                 </div>
                 <ChevronDown 
                   size={16} 
-                  className={`text-white transition-transform ${
+                  className={`text-slate-400 transition-transform flex-shrink-0 ${
                     userDropdownOpen ? 'rotate-180' : ''
                   }`} 
                 />
@@ -98,18 +98,18 @@ const Sidebar = ({ isOpen, onClose, currentPage }) => {
 
               {/* Dropdown Menu */}
               {userDropdownOpen && (
-                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-premium">
+                <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-premium border border-slate-200">
                   <a
                     href="/admin/profile"
-                    className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                    className="flex items-center px-4 py-3 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                   >
-                    <User size={16} className="mr-3" />
+                    <User size={16} className="mr-3 flex-shrink-0" />
                     Profile
                   </a>
                   <button
                     className="w-full flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
                   >
-                    <LogOut size={16} className="mr-3" />
+                    <LogOut size={16} className="mr-3 flex-shrink-0" />
                     Logout
                   </button>
                 </div>
