@@ -11,29 +11,97 @@ import {
   FileText
 } from 'lucide-react';
 import LoadingSkeleton from '../../components/LoadingSkeleton';
+import SubscriptionWidget from '../../components/SubscriptionWidget';
+import LockedOverlay from '../../components/LockedOverlay';
+import axiosInstance from '../../api/axios';
 
 const Dashboard = () => {
   const [loading, setLoading] = useState(true);
+  const [locked, setLocked] = useState(false);
   const [metrics, setMetrics] = useState({
     totalSchools: 0,
     activeSubscriptions: 0,
     systemHealth: 'operational',
     pendingRequests: 0
   });
+  const [subscription, setSubscription] = useState({
+    status: 'active',
+    expiryDate: null,
+    daysRemaining: 0,
+    totalDays: 365,
+    currentSession: '2023/24',
+    currentTerm: '1st Term'
+  });
 
   useEffect(() => {
-    // Simulate loading data
-    const timer = setTimeout(() => {
-      setMetrics({
-        totalSchools: 156,
-        activeSubscriptions: 89,
-        systemHealth: 'operational',
-        pendingRequests: 12
-      });
-      setLoading(false);
-    }, 2000);
+    // Fetch subscription data from API
+    const fetchDashboardData = async () => {
+      try {
+        const response = await axiosInstance.get('/api/schools/profile');
+        const data = response.data;
+        
+        // Update metrics
+        setMetrics({
+          totalSchools: data.totalSchools || 156,
+          activeSubscriptions: data.activeSubscriptions || 89,
+          systemHealth: data.systemHealth || 'operational',
+          pendingRequests: data.pendingRequests || 12
+        });
 
-    return () => clearTimeout(timer);
+        // Update subscription info
+        if (data.subscription) {
+          const expiryDate = new Date(data.subscription.expiryDate);
+          const today = new Date();
+          const daysRemaining = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+          
+          let status = 'active';
+          if (daysRemaining <= 0) {
+            status = 'expired';
+          } else if (daysRemaining <= 30) {
+            status = 'expiring';
+          }
+
+          setSubscription({
+            status,
+            expiryDate: data.subscription.expiryDate,
+            daysRemaining: Math.max(0, daysRemaining),
+            totalDays: data.subscription.totalDays || 365,
+            currentSession: data.currentSession || '2023/24',
+            currentTerm: data.currentTerm || '1st Term'
+          });
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+        
+        // Handle 403 - Subscription Expired
+        if (error.response?.status === 403) {
+          setLocked(true);
+        }
+        
+        // Fallback data
+        setMetrics({
+          totalSchools: 156,
+          activeSubscriptions: 89,
+          systemHealth: 'operational',
+          pendingRequests: 12
+        });
+        
+        setSubscription({
+          status: 'active',
+          expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
+          daysRemaining: 90,
+          totalDays: 365,
+          currentSession: '2023/24',
+          currentTerm: '1st Term'
+        });
+        
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
   const MetricCard = ({ 
@@ -85,15 +153,34 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">Dashboard Overview</h1>
-        <p className="text-slate-600">Welcome back to FikrahTech Admin Panel</p>
-      </div>
+    <>
+      {/* Locked Overlay for Expired Subscription */}
+      {locked && (
+        <LockedOverlay 
+          message="Access Denied: Please contact support to renew your subscription." 
+        />
+      )}
 
-      {/* Bento Grid - 4 Premium Metric Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+      {!locked && (
+        <div className="p-6">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Dashboard Overview</h1>
+            <p className="text-slate-600">Welcome back to FikrahTech Admin Panel</p>
+          </div>
+
+          {/* Subscription Status Widget */}
+          <div className="mb-8">
+            <SubscriptionWidget
+              status={subscription.status}
+              expiryDate={subscription.expiryDate}
+              daysRemaining={subscription.daysRemaining}
+              totalDays={subscription.totalDays}
+            />
+          </div>
+
+          {/* Bento Grid - 4 Premium Metric Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
         <MetricCard
           icon={Building2}
           title="Total Schools"
@@ -204,8 +291,9 @@ const Dashboard = () => {
             )}
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

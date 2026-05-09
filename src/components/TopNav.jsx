@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Menu, User, ChevronDown, LogOut } from 'lucide-react';
 
-const TopNav = ({ onMenuClick, currentPage }) => {
+const TopNav = ({ onMenuClick, currentPage, currentSession, currentTerm }) => {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
   const getPageTitle = () => {
@@ -31,11 +31,17 @@ const TopNav = ({ onMenuClick, currentPage }) => {
             <Menu size={24} className="text-gray-700" />
           </button>
 
-          {/* Page Title */}
+          {/* Page Title and Session Info */}
           <div className="flex-1 text-center lg:text-left">
             <h1 className="text-xl font-semibold text-gray-900">
               {getPageTitle()}
             </h1>
+            {/* Session/Term Display */}
+            {(currentSession || currentTerm) && (
+              <p className="text-sm text-slate-600 mt-1">
+                Session: {currentSession || '2023/24'} | {currentTerm || '1st Term'}
+              </p>
+            )}
           </div>
 
           {/* User Profile Dropdown */}

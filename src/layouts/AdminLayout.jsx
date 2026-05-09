@@ -59,6 +59,8 @@ const AdminLayout = () => {
           <TopNav 
             onMenuClick={toggleSidebar}
             currentPage={getCurrentPage()}
+            currentSession="2023/24"
+            currentTerm="1st Term"
           />
         </div>
 
