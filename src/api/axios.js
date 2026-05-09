@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+// Get API URL from environment variable with fallback
+const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+console.log('Axios baseURL:', `${apiUrl}/api`); // Debug log
+
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:3000/api',
+  baseURL: `${apiUrl}/api`,
   headers: {
     'Content-Type': 'application/json',
   },
