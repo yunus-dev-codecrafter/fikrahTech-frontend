@@ -1,11 +1,12 @@
 import axios from 'axios';
 
-// Get API URL from environment variable with fallback
-const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-console.log('Axios baseURL:', `${apiUrl}/api`); // Debug log
+// Get API URL from environment variable and sanitize it
+const rawApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const apiUrl = rawApiUrl.replace(/\/+$/, ''); // Remove trailing slashes
+console.log('Using API URL:', apiUrl);
 
 const axiosInstance = axios.create({
-  baseURL: `${apiUrl}/api`,
+  baseURL: `${apiUrl}/api`, // Ensure single slash between base URL and /api
   headers: {
     'Content-Type': 'application/json',
   },

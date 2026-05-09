@@ -31,13 +31,8 @@ const Login = () => {
     setLoading(true);
     setError('');
 
-    // Get API URL with fallback
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-    console.log('Using API URL:', apiUrl); // Debug log
-
     try {
       const response = await axiosInstance.post('/auth/login', formData);
-      console.log('Login response:', response); // Debug log
       const { token, user } = response.data;
       
       await login(token, user);
