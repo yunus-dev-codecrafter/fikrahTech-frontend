@@ -3,7 +3,7 @@ import axiosInstance from '../../api/axios';
 import RegisterSchoolModal from '../../components/RegisterSchoolModal';
 import Toast from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { PlusCircle, Search, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, Search, Edit, Trash2, Building2, Shield, CreditCard } from 'lucide-react';
 
 const Schools = () => {
   const [schools, setSchools] = useState([]);
@@ -13,6 +13,7 @@ const Schools = () => {
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingSchool, setEditingSchool] = useState(null);
 
   useEffect(() => {
     fetchSchools();
@@ -39,29 +40,43 @@ const Schools = () => {
     }
   };
 
-  const handleSchoolRegistered = (newSchool) => {
+  const handleAddSchool = (newSchool) => {
     setSchools([...schools, newSchool]);
     setToastMessage(`School "${newSchool.schoolName}" registered successfully!`);
     setToastType('success');
     setShowToast(true);
+    setIsModalOpen(false);
   };
 
-  // Data safety check to prevent blank page crash
-  if (!Array.isArray(schools)) {
-    return (
-      <div className="p-6">
-        <div className="text-center py-12">
-          <p className="text-gray-500">No data found.</p>
-        </div>
-      </div>
-    );
-  }
+  const handleEditSchool = (school) => {
+    setEditingSchool(school);
+    setIsModalOpen(true);
+  };
 
-  const filteredSchools = schools.filter(school =>
-    school.schoolName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    school.proprietorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    school.proprietorEmail?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const handleSaveSchool = async () => {
+    if (!editingSchool) return;
+    
+    try {
+      console.log('Updating school:', editingSchool);
+      await axiosInstance.put(`/admin/schools/${editingSchool._id}`, editingSchool);
+      console.log('School updated successfully');
+      
+      setSchools(schools.map(school => 
+        school._id === editingSchool._id ? editingSchool : school
+      ));
+      
+      setToastMessage('School updated successfully!');
+      setToastType('success');
+      setShowToast(true);
+      setIsModalOpen(false);
+      setEditingSchool(null);
+    } catch (error) {
+      console.error('Failed to update school:', error);
+      setToastMessage('Failed to update school');
+      setToastType('error');
+      setShowToast(true);
+    }
+  };
 
   const handleDeleteSchool = async (schoolId) => {
     if (!window.confirm('Are you sure you want to delete this school?')) {
@@ -81,6 +96,38 @@ const Schools = () => {
       setShowToast(true);
     }
   };
+
+  const handleSubscriptionAction = async (schoolId, action) => {
+    try {
+      console.log(`${action} subscription for school:`, schoolId);
+      await axiosInstance.put(`/admin/schools/${schoolId}/subscription`, { action });
+      setToastMessage(`Subscription ${action}d successfully!`);
+      setToastType('success');
+      setShowToast(true);
+    } catch (error) {
+      console.error(`Failed to ${action} subscription:`, error);
+      setToastMessage(`Failed to ${action} subscription`);
+      setToastType('error');
+      setShowToast(true);
+    }
+  };
+
+  // Data safety check to prevent blank page crash
+  if (!Array.isArray(schools)) {
+    return (
+      <div className="p-6">
+        <div className="text-center py-12">
+          <p className="text-gray-500">No data found.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const filteredSchools = schools.filter(school =>
+    school.schoolName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    school.proprietorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    school.proprietorEmail?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -164,6 +211,9 @@ const Schools = () => {
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Subscription
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -181,19 +231,24 @@ const Schools = () => {
                       <div className="text-sm text-gray-500">{school.proprietorEmail}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                        Active
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        school.subscriptionStatus === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {school.subscriptionStatus === 'active' ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         className="text-emerald-600 hover:text-emerald-900 mr-3"
-                        onClick={() => {
-                          // TODO: Implement edit functionality
-                          console.log('Edit school:', school);
-                        }}
+                        onClick={() => handleEditSchool(school)}
                       >
                         <Edit size={16} />
+                      </button>
+                      <button
+                        className="text-blue-600 hover:text-blue-900 mr-3"
+                        onClick={() => handleSubscriptionAction(school._id, 'manage')}
+                      >
+                        <CreditCard size={16} />
                       </button>
                       <button
                         className="text-red-600 hover:text-red-900"
@@ -213,7 +268,7 @@ const Schools = () => {
       <RegisterSchoolModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSuccess={handleSchoolRegistered}
+        onSuccess={handleAddSchool}
       />
 
       {showToast && (

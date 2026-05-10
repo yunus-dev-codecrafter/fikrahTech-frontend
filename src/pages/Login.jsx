@@ -45,7 +45,22 @@ const Login = () => {
       setShowToast(true);
       
       setTimeout(() => {
-        navigate('/admin/dashboard');
+        // Role-based redirect logic
+        switch (user.role) {
+          case 'super_admin':
+            navigate('/admin/dashboard');
+            break;
+          case 'proprietor':
+            navigate('/proprietor/dashboard');
+            break;
+          case 'staff':
+          case 'parent':
+            navigate('/staff/dashboard');
+            break;
+          default:
+            navigate('/admin/dashboard');
+            break;
+        }
       }, 1000);
     } catch (err) {
       console.error('SERVER_ERROR:', err.response?.data);

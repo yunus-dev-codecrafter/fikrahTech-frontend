@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Menu, X, Home, Building2, Users, Settings, LogOut } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import Sidebar from '../components/Sidebar';
+import Sidebar from '../components/DynamicSidebar';
 import TopNav from '../components/TopNav';
+import { useAuth } from '../context/AuthContext';
+import axiosInstance from '../api/axios';
 
 const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,32 +17,51 @@ const AdminLayout = () => {
       setIsMobile(window.innerWidth < 1024);
     };
 
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const closeSidebar = () => {
-    setSidebarOpen(false);
-  };
-
-  const handleLogout = () => {
-    logout();
-    closeSidebar();
-  };
-
   const getCurrentPage = () => {
-    const path = location.pathname;
-    if (path.includes('/dashboard')) return 'dashboard';
-    if (path.includes('/schools')) return 'schools';
-    if (path.includes('/users')) return 'users';
-    if (path.includes('/settings')) return 'settings';
+    const path = window.location.pathname;
+    if (path.includes('/admin/dashboard')) return 'dashboard';
+    if (path.includes('/admin/schools')) return 'schools';
+    if (path.includes('/admin/users')) return 'users';
+    if (path.includes('/admin/settings')) return 'settings';
+    if (path.includes('/proprietor/dashboard')) return 'dashboard';
+    if (path.includes('/proprietor/schools')) return 'schools';
+    if (path.includes('/proprietor/students')) return 'students';
+    if (path.includes('/proprietor/staff')) return 'staff';
+    if (path.includes('/proprietor/subscription')) return 'subscription';
+    if (path.includes('/proprietor/terms')) return 'terms';
+    if (path.includes('/proprietor/settings')) return 'settings';
     return 'dashboard';
   };
+  }, []);
+
+  // Fetch dashboard stats from API
+  const [stats, setStats] = useState({
+    totalSchools: 0,
+    totalUsers: 0,
+    totalStudents: 0,
+    totalRevenue: 0,
+    systemHealth: 'operational'
+  });
+
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        console.log('Fetching dashboard stats from API...');
+        const response = await axiosInstance.get('/admin/stats');
+        console.log('Dashboard stats fetched successfully:', response.data);
+        setStats(response.data);
+      } catch (error) {
+        console.error('Failed to fetch dashboard stats:', error);
+        console.error('Error details:', {
+          message: error.message,
+          status: error.response?.status,
+          data: error.response?.data
+        });
+      }
+    };
+
+    fetchDashboardStats();
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -50,6 +70,7 @@ const AdminLayout = () => {
         isOpen={sidebarOpen} 
         onClose={closeSidebar}
         currentPage={getCurrentPage()}
+        userRole={user.role} 
       />
 
       {/* Main Content */}
@@ -59,8 +80,8 @@ const AdminLayout = () => {
           <TopNav 
             onMenuClick={toggleSidebar}
             currentPage={getCurrentPage()}
-            currentSession="2023/24"
-            currentTerm="1st Term"
+            currentSession={stats.currentSession || '2023/24'}
+            currentTerm={stats.currentTerm || '1st Term'}
           />
         </div>
 
