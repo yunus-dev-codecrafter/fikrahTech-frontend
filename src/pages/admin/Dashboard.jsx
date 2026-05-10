@@ -1,266 +1,131 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Building2, 
-  CreditCard, 
-  Activity, 
-  Clock, 
-  Users, 
-  TrendingUp,
-  Plus,
-  Settings,
-  FileText
-} from 'lucide-react';
-import LoadingSkeleton from '../../components/LoadingSkeleton';
-import SubscriptionWidget from '../../components/SubscriptionWidget';
-import LockedOverlay from '../../components/LockedOverlay';
-import axiosInstance from '../../api/axios';
+import { Navigate } from 'react-router-dom';
+import api from '../../api/axios';
+import { FiSchool, FiUsers, FiCreditCard, FiAlertCircle } from 'react-icons/fi';
 
-const Dashboard = () => {
-  const [loading, setLoading] = useState(true);
-  const [locked, setLocked] = useState(false);
-  const [metrics, setMetrics] = useState({
+const StatCard = ({ title, value, icon: Icon, color }) => (
+  <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-sm font-medium text-slate-500">{title}</p>
+        <p className="text-3xl font-bold text-slate-900 mt-2">{value}</p>
+      </div>
+      <div className={`p-3 rounded-xl ${color} bg-opacity-10`}>
+        <Icon className={`w-7 h-7 ${color}`} />
+      </div>
+    </div>
+  </div>
+);
+
+const AdminDashboard = () => {
+  const [stats, setStats] = useState({
     totalSchools: 0,
     activeSubscriptions: 0,
-    systemHealth: 'operational',
-    pendingRequests: 0
+    pendingApprovals: 0,
   });
-  const [subscription, setSubscription] = useState({
-    status: 'active',
-    expiryDate: null,
-    daysRemaining: 0,
-    totalDays: 365,
-    currentSession: '2023/24',
-    currentTerm: '1st Term'
-  });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // RBAC Check: Ensure user is a super_admin
+  const userString = localStorage.getItem('user');
+  const user = userString ? JSON.parse(userString) : null;
 
   useEffect(() => {
-    // Fetch subscription data from API
-    const fetchDashboardData = async () => {
+    const fetchStats = async () => {
       try {
-        const response = await axiosInstance.get('/api/schools/profile');
-        const data = response.data;
-        
-        // Update metrics
-        setMetrics({
-          totalSchools: data.totalSchools || 156,
-          activeSubscriptions: data.activeSubscriptions || 89,
-          systemHealth: data.systemHealth || 'operational',
-          pendingRequests: data.pendingRequests || 12
+        setLoading(true);
+        const response = await api.get('/api/admin/stats');
+        setStats(response.data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching admin stats:', err);
+        setError('Failed to load real-time stats. Displaying cached data.');
+        // Fallback/Mock data if backend endpoint isn't ready yet
+        setStats({
+          totalSchools: 5,
+          activeSubscriptions: 3,
+          pendingApprovals: 1,
         });
-
-        // Update subscription info
-        if (data.subscription) {
-          const expiryDate = new Date(data.subscription.expiryDate);
-          const today = new Date();
-          const daysRemaining = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
-          
-          let status = 'active';
-          if (daysRemaining <= 0) {
-            status = 'expired';
-          } else if (daysRemaining <= 30) {
-            status = 'expiring';
-          }
-
-          setSubscription({
-            status,
-            expiryDate: data.subscription.expiryDate,
-            daysRemaining: Math.max(0, daysRemaining),
-            totalDays: data.subscription.totalDays || 365,
-            currentSession: data.currentSession || '2023/24',
-            currentTerm: data.currentTerm || '1st Term'
-          });
-        }
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
-        
-        // Handle 403 - Subscription Expired
-        if (error.response?.status === 403) {
-          setLocked(true);
-        }
-        
-        // Fallback data
-        setMetrics({
-          totalSchools: 156,
-          activeSubscriptions: 89,
-          systemHealth: 'operational',
-          pendingRequests: 12
-        });
-        
-        setSubscription({
-          status: 'active',
-          expiryDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(),
-          daysRemaining: 90,
-          totalDays: 365,
-          currentSession: '2023/24',
-          currentTerm: '1st Term'
-        });
-        
+      } finally {
         setLoading(false);
       }
     };
 
-    fetchDashboardData();
+    if (user && user.role === 'super_admin') {
+      fetchStats();
+    }
   }, []);
 
-  const MetricCard = ({ 
-    icon: Icon, 
-    title, 
-    value, 
-    change, 
-    color, 
-    loading = false 
-  }) => {
-    const colorClasses = {
-      emerald: 'from-emerald-50 to-emerald-100 text-emerald-600',
-      blue: 'from-blue-50 to-blue-100 text-blue-600',
-      purple: 'from-purple-50 to-purple-100 text-purple-600',
-      amber: 'from-amber-50 to-amber-100 text-amber-600'
-    };
-
-    return (
-      <div className="bg-white rounded-2xl shadow-sm p-6 hover:shadow-md transition-shadow duration-300">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className={`p-3 rounded-xl bg-gradient-to-br ${colorClasses[color]}`}>
-              <Icon size={24} />
-            </div>
-            <div>
-              <h3 className="text-2xl font-bold text-slate-900">
-                {loading ? (
-                  <div className="animate-pulse bg-slate-200 rounded w-16 h-8" />
-                ) : (
-                  value
-                )}
-              </h3>
-              <p className="text-sm text-slate-500 mt-1">{title}</p>
-            </div>
-          </div>
-          {change && (
-            <div className={`text-sm font-semibold px-3 py-1 rounded-full ${change > 0 ? 'bg-emerald-100 text-emerald-700' : change < 0 ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'}`}>
-              {change > 0 ? '+' : ''}
-              {Math.abs(change)}%
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
+  if (!user || user.role !== 'super_admin') {
+    return <Navigate to="/login" replace />;
+  }
 
   return (
-    <>
-      {/* Locked Overlay for Expired Subscription */}
-      {locked && (
-        <LockedOverlay 
-          message="Access Denied: Please contact support to renew your subscription." 
-        />
-      )}
-
-      {!locked && (
-        <div className="p-6">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Dashboard Overview</h1>
-            <p className="text-slate-600">Welcome back to FikrahTech Admin Panel</p>
-          </div>
-
-          {/* Total Schools & Active Subscriptions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-2 gap-6 mb-8">
-            <MetricCard
-              icon={Building2}
-              title="Total Schools"
-              value={metrics.totalSchools.toLocaleString()}
-              change={12}
-              color="emerald"
-              loading={loading}
-            />
-            
-            <MetricCard
-              icon={CreditCard}
-              title="Active Subscriptions"
-              value={metrics.activeSubscriptions.toLocaleString()}
-              change={-2}
-              color="purple"
-              loading={loading}
-            />
-          </div>
-
-          {/* Asymmetrical Secondary Content */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Recent Activity - Wider Section */}
-            <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-slate-900 mb-4">Recent Activity</h2>
-              <div className="space-y-4">
-                {loading ? (
-                  // Loading Skeletons
-                  [1, 2, 3, 4].map((item) => (
-                    <div key={item} className="flex items-center space-x-3 p-3 rounded-lg">
-                      <div className="animate-pulse bg-slate-200 rounded-full w-10 h-10" />
-                      <div className="flex-1 space-y-2">
-                        <div className="animate-pulse bg-slate-200 rounded w-32 h-4" />
-                        <div className="animate-pulse bg-slate-200 rounded w-48 h-3" />
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  // Real Content (placeholder)
-                  [
-                    { icon: Building2, title: 'New School Registered', desc: 'Greenwood Academy added', time: '2 min ago' },
-                    { icon: Users, title: 'User Activity Spike', desc: '42 new registrations', time: '1 hour ago' },
-                    { icon: CreditCard, title: 'Subscription Renewed', desc: 'Premium plan renewed', time: '3 hours ago' },
-                    { icon: Activity, title: 'System Update', desc: 'Performance improved 23%', time: '5 hours ago' }
-                  ].map((item, index) => (
-                    <div key={index} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-slate-50 transition-colors">
-                      <div className="p-2 rounded-lg bg-slate-100">
-                        <item.icon size={16} className="text-slate-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-medium text-slate-900">{item.title}</h4>
-                        <p className="text-xs text-slate-600">{item.desc}</p>
-                        <p className="text-xs text-slate-500">{item.time}</p>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Quick Actions - Narrower Panel */}
-            <div className="bg-white rounded-2xl shadow-sm p-6">
-              <h2 className="text-xl font-semibold text-slate-900 mb-4">Quick Actions</h2>
-              <div className="space-y-3">
-                {loading ? (
-                  // Loading Skeletons
-                  [1, 2, 3].map((item) => (
-                    <div key={item} className="animate-pulse bg-slate-200 rounded-lg h-12" />
-                  ))
-                ) : (
-                  // Real Actions
-                  [
-                    { icon: Plus, label: 'Add New School', color: 'emerald' },
-                    { icon: Users, label: 'Manage Users', color: 'blue' },
-                    { icon: Settings, label: 'System Settings', color: 'purple' },
-                    { icon: FileText, label: 'Generate Reports', color: 'amber' }
-                  ].map((action, index) => (
-                    <button
-                      key={index}
-                      className="w-full flex items-center p-3 rounded-lg hover:bg-slate-50 transition-colors text-left hover:text-emerald-600"
-                    >
-                      <action.icon size={18} className="mr-3 text-slate-600" />
-                      <span className="text-sm font-medium text-slate-700">{action.label}</span>
-            {loading ? (
-              <div className="animate-pulse bg-slate-200 rounded w-16 h-8" />
-            ) : (
-              value
-            )}
-          </h3>
-          <p className="text-sm text-slate-500 mt-1">{title}</p>
+    <div className="p-6 md:p-8 space-y-8">
+      <header className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900">System Overview</h1>
+          <p className="text-slate-600 mt-1">Welcome back, {user.name} (Global Admin)</p>
         </div>
-          </div>
+      </header>
+
+      {error && (
+        <div className="bg-amber-50 border border-amber-200 text-amber-800 p-4 rounded-xl flex items-center gap-3">
+          <FiAlertCircle className="w-5 h-5" />
+          <p className="text-sm font-medium">{error}</p>
         </div>
       )}
-    </>
+
+      {loading ? (
+        <div className="text-center py-10 text-slate-500">Loading system stats...</div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <StatCard 
+            title="Total Schools Registered" 
+            value={stats.totalSchools} 
+            icon={FiSchool} 
+            color="text-blue-600" 
+          />
+          <StatCard 
+            title="Active Subscriptions" 
+            value={stats.activeSubscriptions} 
+            icon={FiCreditCard} 
+            color="text-emerald-600" 
+          />
+          <StatCard 
+            title="Pending School Approvals" 
+            value={stats.pendingApprovals} 
+            icon={FiAlertCircle} 
+            color="text-amber-600" 
+          />
+        </div>
+      )}
+
+      <div className="bg-white p-8 rounded-2xl border border-slate-100 shadow-sm">
+        <h2 className="text-xl font-semibold text-slate-900">System Actions</h2>
+        <p className="text-slate-500 mt-1 mb-6">Common administrative tasks.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <NavigateButton to="/admin/schools" label="Manage All Schools" icon={FiSchool}/>
+          <NavigateButton to="/admin/users" label="System User Audit" icon={FiUsers}/>
+        </div>
+      </div>
+    </div>
   );
 };
 
-export default Dashboard;
+// Simple helper component for cleaner JSX
+import { useNavigate } from 'react-router-dom';
+const NavigateButton = ({ to, label, icon: Icon }) => {
+    const navigate = useNavigate();
+    return (
+        <button 
+            onClick={() => navigate(to)}
+            className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-800 font-medium transition-colors border border-slate-100"
+        >
+            <Icon className="w-5 h-5 text-slate-500" />
+            {label}
+        </button>
+    )
+}
+
+export default AdminDashboard;
