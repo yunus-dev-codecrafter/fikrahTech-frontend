@@ -14,6 +14,20 @@ import {
 const Sidebar = ({ isOpen, onClose, currentPage }) => {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
+  const handleLogout = () => {
+    // Clear localStorage and cookies
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Clear any cookies
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+    
+    // Redirect to login page
+    window.location.href = '/login';
+  };
+
   const menuItems = [
     { icon: Home, label: 'Dashboard', href: '/admin/dashboard', active: currentPage === 'dashboard' },
     { icon: Building2, label: 'Schools', href: '/admin/schools', active: currentPage === 'schools' },
@@ -107,6 +121,7 @@ const Sidebar = ({ isOpen, onClose, currentPage }) => {
                     Profile
                   </a>
                   <button
+                    onClick={handleLogout}
                     className="w-full flex items-center px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
                   >
                     <LogOut size={16} className="mr-3 flex-shrink-0" />

@@ -1,37 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../../api/axios';
-import RegisterSchoolModal from '../../components/RegisterSchoolModal';
-import Toast from '../../components/Toast';
 import LoadingSpinner from '../../components/LoadingSpinner';
-import { PlusCircle, Search, Edit, Trash2 } from 'lucide-react';
+import Toast from '../../components/Toast';
+import { Users, Search, Edit, Trash2, Shield, User } from 'lucide-react';
 
-const Schools = () => {
-  const [schools, setSchools] = useState([]);
+const UsersManagement = () => {
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastType, setToastType] = useState('success');
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    fetchSchools();
+    fetchUsers();
   }, []);
 
-  const fetchSchools = async () => {
+  const fetchUsers = async () => {
     try {
-      console.log('Fetching schools from API...');
-      const response = await axiosInstance.get('/admin/schools');
-      console.log('Schools fetched successfully:', response.data);
-      setSchools(response.data);
+      console.log('Fetching users from API...');
+      const response = await axiosInstance.get('/admin/users');
+      console.log('Users fetched successfully:', response.data);
+      setUsers(response.data);
     } catch (error) {
-      console.error('Failed to fetch schools:', error);
+      console.error('Failed to fetch users:', error);
       console.error('Error details:', {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data
       });
-      setToastMessage('Failed to fetch schools');
+      setToastMessage('Failed to fetch users');
       setToastType('error');
       setShowToast(true);
     } finally {
@@ -39,15 +37,8 @@ const Schools = () => {
     }
   };
 
-  const handleSchoolRegistered = (newSchool) => {
-    setSchools([...schools, newSchool]);
-    setToastMessage(`School "${newSchool.schoolName}" registered successfully!`);
-    setToastType('success');
-    setShowToast(true);
-  };
-
   // Data safety check to prevent blank page crash
-  if (!Array.isArray(schools)) {
+  if (!Array.isArray(users)) {
     return (
       <div className="p-6">
         <div className="text-center py-12">
@@ -57,28 +48,50 @@ const Schools = () => {
     );
   }
 
-  const filteredSchools = schools.filter(school =>
-    school.schoolName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    school.proprietorName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    school.proprietorEmail?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredUsers = users.filter(user =>
+    user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.role?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDeleteSchool = async (schoolId) => {
-    if (!window.confirm('Are you sure you want to delete this school?')) {
+  const handleDeleteUser = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) {
       return;
     }
 
     try {
-      await axiosInstance.delete(`/admin/schools/${schoolId}`);
-      setSchools(schools.filter(school => school._id !== schoolId));
-      setToastMessage('School deleted successfully');
+      await axiosInstance.delete(`/admin/users/${userId}`);
+      setUsers(users.filter(user => user._id !== userId));
+      setToastMessage('User deleted successfully');
       setToastType('success');
       setShowToast(true);
     } catch (error) {
-      console.error('Failed to delete school:', error);
-      setToastMessage('Failed to delete school');
+      console.error('Failed to delete user:', error);
+      setToastMessage('Failed to delete user');
       setToastType('error');
       setShowToast(true);
+    }
+  };
+
+  const getRoleIcon = (role) => {
+    switch (role?.toLowerCase()) {
+      case 'admin':
+        return <Shield size={16} className="text-red-600" />;
+      case 'teacher':
+        return <User size={16} className="text-blue-600" />;
+      default:
+        return <User size={16} className="text-gray-600" />;
+    }
+  };
+
+  const getRoleColor = (role) => {
+    switch (role?.toLowerCase()) {
+      case 'admin':
+        return 'bg-red-100 text-red-800';
+      case 'teacher':
+        return 'bg-blue-100 text-blue-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -93,15 +106,15 @@ const Schools = () => {
   return (
     <div className="p-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-navy-800">School Management</h1>
-        <p className="text-gray-600 mt-2">Manage registered schools and their proprietors</p>
+        <h1 className="text-3xl font-bold text-navy-800">User Management</h1>
+        <p className="text-gray-600 mt-2">Manage system users and their roles</p>
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <div className="w-full sm:w-auto">
             <h2 className="text-xl font-semibold text-navy-800 mb-2">
-              Registered Schools ({schools.length})
+              System Users ({users.length})
             </h2>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -109,42 +122,26 @@ const Schools = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
               <input
                 type="text"
-                placeholder="Search schools..."
+                placeholder="Search users..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 pr-4 py-2 w-full sm:w-64 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
             </div>
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center justify-center px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors"
-            >
-              <PlusCircle className="mr-2" size={20} />
-              Add School
-            </button>
           </div>
         </div>
 
-        {filteredSchools.length === 0 ? (
+        {filteredUsers.length === 0 ? (
           <div className="text-center py-12">
             <div className="text-gray-400 mb-4">
-              <PlusCircle size={48} className="mx-auto" />
+              <Users size={48} className="mx-auto" />
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
-              {searchTerm ? 'No schools found' : 'No schools registered yet'}
+              {searchTerm ? 'No users found' : 'No users registered yet'}
             </h3>
-            <p className="text-gray-500 mb-4">
-              {searchTerm ? 'Try adjusting your search terms.' : 'Get started by registering your first school.'}
+            <p className="text-gray-500">
+              {searchTerm ? 'Try adjusting your search terms.' : 'Users will appear here when they register.'}
             </p>
-            {!searchTerm && (
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center px-4 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors"
-              >
-                <PlusCircle className="mr-2" size={20} />
-                Register First School
-              </button>
-            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -152,13 +149,13 @@ const Schools = () => {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    School Name
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Proprietor
+                    Name
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Email
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Role
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
@@ -169,16 +166,28 @@ const Schools = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredSchools.map((school) => (
-                  <tr key={school._id} className="hover:bg-gray-50">
+                {filteredUsers.map((user) => (
+                  <tr key={user._id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{school.schoolName}</div>
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0 h-10 w-10">
+                          <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                            <User size={16} className="text-gray-600" />
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                        </div>
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{school.proprietorName}</div>
+                      <div className="text-sm text-gray-900">{user.email}</div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-500">{school.proprietorEmail}</div>
+                      <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getRoleColor(user.role)}`}>
+                        {getRoleIcon(user.role)}
+                        <span className="ml-1">{user.role || 'User'}</span>
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
@@ -190,14 +199,14 @@ const Schools = () => {
                         className="text-emerald-600 hover:text-emerald-900 mr-3"
                         onClick={() => {
                           // TODO: Implement edit functionality
-                          console.log('Edit school:', school);
+                          console.log('Edit user:', user);
                         }}
                       >
                         <Edit size={16} />
                       </button>
                       <button
                         className="text-red-600 hover:text-red-900"
-                        onClick={() => handleDeleteSchool(school._id)}
+                        onClick={() => handleDeleteUser(user._id)}
                       >
                         <Trash2 size={16} />
                       </button>
@@ -210,12 +219,6 @@ const Schools = () => {
         )}
       </div>
 
-      <RegisterSchoolModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={handleSchoolRegistered}
-      />
-
       {showToast && (
         <Toast
           message={toastMessage}
@@ -227,4 +230,4 @@ const Schools = () => {
   );
 };
 
-export default Schools;
+export default UsersManagement;
