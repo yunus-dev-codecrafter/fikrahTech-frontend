@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
-import api from '../../api/axios';
-import { FiSchool, FiUsers, FiCreditCard, FiAlertCircle } from 'react-icons/fi';
+import { Navigate, useNavigate } from 'react-router-dom'; // Added useNavigate here
+import api from '../../api/axios'; 
+// Switched from 'fi' to 'lu' (Lucide Icons)
+import { LuSchool, LuUsers, LuCreditCard, LuAlertCircle } from 'react-icons/lu';
 
 const StatCard = ({ title, value, icon: Icon, color }) => (
   <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
@@ -83,19 +84,19 @@ const AdminDashboard = () => {
           <StatCard 
             title="Total Schools Registered" 
             value={stats.totalSchools} 
-            icon={FiSchool} 
+            icon={LuSchool} // Changed
             color="text-blue-600" 
           />
           <StatCard 
             title="Active Subscriptions" 
             value={stats.activeSubscriptions} 
-            icon={FiCreditCard} 
+            icon={LuCreditCard} // Changed
             color="text-emerald-600" 
           />
           <StatCard 
             title="Pending School Approvals" 
             value={stats.pendingApprovals} 
-            icon={FiAlertCircle} 
+            icon={LuAlertCircle} // Changed
             color="text-amber-600" 
           />
         </div>
@@ -105,8 +106,8 @@ const AdminDashboard = () => {
         <h2 className="text-xl font-semibold text-slate-900">System Actions</h2>
         <p className="text-slate-500 mt-1 mb-6">Common administrative tasks.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <NavigateButton to="/admin/schools" label="Manage All Schools" icon={FiSchool}/>
-          <NavigateButton to="/admin/users" label="System User Audit" icon={FiUsers}/>
+          <NavigateButton to="/admin/schools" label="Manage All Schools" icon={LuSchool}/>
+          <NavigateButton to="/admin/users" label="System User Audit" icon={LuUsers}/>
         </div>
       </div>
     </div>
@@ -114,7 +115,6 @@ const AdminDashboard = () => {
 };
 
 // Simple helper component for cleaner JSX
-import { useNavigate } from 'react-router-dom';
 const NavigateButton = ({ to, label, icon: Icon }) => {
     const navigate = useNavigate();
     return (
