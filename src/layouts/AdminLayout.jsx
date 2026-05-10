@@ -12,6 +12,10 @@ const AdminLayout = () => {
   const { user, logout } = useAuth();
   const location = useLocation();
 
+  const closeSidebar = () => {
+    setSidebarOpen(false);
+  };
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
