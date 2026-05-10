@@ -16,6 +16,10 @@ const AdminLayout = () => {
     setSidebarOpen(false);
   };
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 1024);
