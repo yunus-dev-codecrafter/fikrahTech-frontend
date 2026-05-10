@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import api from '../../api/axios'; 
-// Using most standard names for Lucide icons
-import { LuLayoutDashboard, LuUsers, LuWallet, LuAlertTriangle } from 'react-icons/lu';
+// REMOVED react-icons import entirely
 
-const StatCard = ({ title, value, icon: Icon, color }) => (
+const StatCard = ({ title, value, label, color }) => (
   <div className="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
     <div className="flex items-center justify-between">
       <div>
         <p className="text-sm font-medium text-slate-500">{title}</p>
         <p className="text-3xl font-bold text-slate-900 mt-2">{value}</p>
       </div>
-      <div className={`p-3 rounded-xl ${color} bg-opacity-10`}>
-        <Icon className={`w-7 h-7 ${color}`} />
+      <div className={`text-2xl ${color}`}>
+        {label} {/* Using a text emoji instead of a broken icon component */}
       </div>
     </div>
   </div>
@@ -84,19 +83,19 @@ const AdminDashboard = () => {
           <StatCard 
             title="Total Schools Registered" 
             value={stats.totalSchools} 
-            icon={LuLayoutDashboard} // Changed from LuSchool
+            label="🏫" 
             color="text-blue-600" 
           />
           <StatCard 
             title="Active Subscriptions" 
             value={stats.activeSubscriptions} 
-            icon={LuWallet} // Changed from LuCreditCard
+            label="💳" 
             color="text-emerald-600" 
           />
           <StatCard 
             title="Pending School Approvals" 
             value={stats.pendingApprovals} 
-            icon={LuAlertTriangle} // Changed from LuAlertCircle
+            label="⚠️" 
             color="text-amber-600" 
           />
         </div>
@@ -106,8 +105,8 @@ const AdminDashboard = () => {
         <h2 className="text-xl font-semibold text-slate-900">System Actions</h2>
         <p className="text-slate-500 mt-1 mb-6">Common administrative tasks.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <NavigateButton to="/admin/schools" label="Manage All Schools" icon={LuLayoutDashboard}/>
-          <NavigateButton to="/admin/users" label="System User Audit" icon={LuUsers}/>
+          <NavigateButton to="/admin/schools" label="Manage All Schools" emoji="🏫"/>
+          <NavigateButton to="/admin/users" label="System User Audit" emoji="👥"/>
         </div>
       </div>
     </div>
@@ -115,14 +114,14 @@ const AdminDashboard = () => {
 };
 
 // Simple helper component for cleaner JSX
-const NavigateButton = ({ to, label, icon: Icon }) => {
+const NavigateButton = ({ to, label, emoji }) => {
     const navigate = useNavigate();
     return (
         <button 
             onClick={() => navigate(to)}
             className="flex items-center gap-3 p-4 bg-slate-50 hover:bg-slate-100 rounded-xl text-slate-800 font-medium transition-colors border border-slate-100"
         >
-            <Icon className="w-5 h-5 text-slate-500" />
+            <span>{emoji}</span>
             {label}
         </button>
     )
