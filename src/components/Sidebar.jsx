@@ -14,6 +14,10 @@ import {
 const Sidebar = ({ isOpen, onClose, currentPage }) => {
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
+  const closeSidebar = () => {
+    onClose();
+  };
+
   const handleLogout = () => {
     // Clear localStorage and cookies
     localStorage.clear();

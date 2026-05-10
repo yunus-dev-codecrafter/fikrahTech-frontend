@@ -53,9 +53,12 @@ const Login = () => {
           case 'proprietor':
             navigate('/proprietor/dashboard');
             break;
-          case 'staff':
-          case 'parent':
+          case 'teacher':
+          case 'headmaster':
             navigate('/staff/dashboard');
+            break;
+          case 'parent':
+            navigate('/parent/dashboard');
             break;
           default:
             navigate('/admin/dashboard');
