@@ -17,6 +17,19 @@ const Dashboard = () => {
     pendingRequests: 0
   });
   const [statsLoading, setStatsLoading] = useState(true);
+  
+  // Modal states
+  const [showSchoolModal, setShowSchoolModal] = useState(false);
+  const [schoolFormLoading, setSchoolFormLoading] = useState(false);
+  const [schoolForm, setSchoolForm] = useState({
+    schoolName: '',
+    proprietorEmail: '',
+    initialSession: '2026/2027',
+    initialTerm: 'First Term'
+  });
+  
+  // Toast notification state
+  const [toast, setToast] = useState(null);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -24,47 +37,101 @@ const Dashboard = () => {
     navigate('/login');
   };
 
-  // Fetch stats from API
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const response = await axiosInstance.get('/admin/stats');
-        setStats(response.data);
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-        // Keep default values if API fails
-      } finally {
-        setStatsLoading(false);
-      }
-    };
+  // Toast notification function
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
 
+  // Fetch stats from API
+  const fetchStats = async () => {
+    try {
+      const response = await axiosInstance.get('/admin/stats');
+      setStats(response.data);
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+      // Keep default values if API fails
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchStats();
   }, []);
+
+  // Handle school registration
+  const handleSchoolRegistration = async (e) => {
+    e.preventDefault();
+    setSchoolFormLoading(true);
+
+    try {
+      const response = await axiosInstance.post('/admin/schools', schoolForm);
+      showToast('School registered successfully!', 'success');
+      setShowSchoolModal(false);
+      setSchoolForm({
+        schoolName: '',
+        proprietorEmail: '',
+        initialSession: '2026/2027',
+        initialTerm: 'First Term'
+      });
+      // Refresh stats to show new school count
+      fetchStats();
+    } catch (error) {
+      console.error('Error registering school:', error);
+      showToast(error.response?.data?.message || 'Failed to register school', 'error');
+    } finally {
+      setSchoolFormLoading(false);
+    }
+  };
 
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: Home },
     { id: 'schools', label: 'School Management', icon: School },
-    { id: 'academic', label: 'Academic Control', icon: Calendar },
+    { id: 'sessions', label: 'Session Monitor', icon: Calendar },
+    { id: 'revenue', label: 'Revenue Reports', icon: CreditCard },
     { id: 'subscriptions', label: 'Subscription Plans', icon: CreditCard },
   ];
 
   const renderContent = () => {
     switch (activeSection) {
       case 'overview':
-        return <OverviewContent stats={stats} statsLoading={statsLoading} />;
+        return <OverviewContent stats={stats} statsLoading={statsLoading} setShowSchoolModal={setShowSchoolModal} />;
       case 'schools':
         return <SchoolsContent />;
-      case 'academic':
-        return <AcademicContent />;
+      case 'sessions':
+        return <SessionsContent />;
+      case 'revenue':
+        return <RevenueContent />;
       case 'subscriptions':
         return <SubscriptionsContent />;
       default:
-        return <OverviewContent stats={stats} statsLoading={statsLoading} />;
+        return <OverviewContent stats={stats} statsLoading={statsLoading} setShowSchoolModal={setShowSchoolModal} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 flex">
+      {/* Toast Notification */}
+      {toast && (
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
+          toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+        }`}>
+          <div className="flex items-center space-x-2">
+            {toast.type === 'success' ? (
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            )}
+            <span>{toast.message}</span>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Menu Button */}
       <button
         onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -171,12 +238,118 @@ const Dashboard = () => {
           {renderContent()}
         </main>
       </div>
+
+      {/* School Registration Modal */}
+      {showSchoolModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-slate-900">Register New School</h3>
+                <button
+                  onClick={() => setShowSchoolModal(false)}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSchoolRegistration} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    School Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={schoolForm.schoolName}
+                    onChange={(e) => setSchoolForm(prev => ({ ...prev, schoolName: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter school name"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Proprietor Email
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={schoolForm.proprietorEmail}
+                    onChange={(e) => setSchoolForm(prev => ({ ...prev, proprietorEmail: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter proprietor email"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Initial Session
+                  </label>
+                  <select
+                    value={schoolForm.initialSession}
+                    onChange={(e) => setSchoolForm(prev => ({ ...prev, initialSession: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="2025/2026">2025/2026</option>
+                    <option value="2026/2027">2026/2027</option>
+                    <option value="2027/2028">2027/2028</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Initial Term
+                  </label>
+                  <select
+                    value={schoolForm.initialTerm}
+                    onChange={(e) => setSchoolForm(prev => ({ ...prev, initialTerm: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="First Term">First Term</option>
+                    <option value="Second Term">Second Term</option>
+                    <option value="Third Term">Third Term</option>
+                  </select>
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowSchoolModal(false)}
+                    className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={schoolFormLoading}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {schoolFormLoading ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Registering...
+                      </span>
+                    ) : (
+                      'Register School'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 // Overview Content Component
-const OverviewContent = ({ stats, statsLoading }) => (
+const OverviewContent = ({ stats, statsLoading, setShowSchoolModal }) => (
   <div className="space-y-6">
     <div className="mb-8">
       <h1 className="text-3xl font-bold text-slate-900">System Overview</h1>
@@ -250,10 +423,13 @@ const OverviewContent = ({ stats, statsLoading }) => (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
       <h3 className="text-lg font-semibold text-slate-900 mb-4">Quick Actions</h3>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <button className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-left">
+        <button 
+          onClick={() => setShowSchoolModal(true)}
+          className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-left"
+        >
           <Users className="w-6 h-6 text-blue-600 mb-2" />
-          <h4 className="font-medium text-slate-900">Approve Schools</h4>
-          <p className="text-sm text-slate-600">Review pending school registrations</p>
+          <h4 className="font-medium text-slate-900">Add New School</h4>
+          <p className="text-sm text-slate-600">Register a new school on the platform</p>
         </button>
         <button className="p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors text-left">
           <Settings className="w-6 h-6 text-purple-600 mb-2" />
@@ -299,6 +475,184 @@ const AcademicContent = () => (
     </div>
   </div>
 );
+
+// Sessions Content Component
+const SessionsContent = () => {
+  const [sessions, setSessions] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        const response = await axiosInstance.get('/admin/sessions');
+        setSessions(response.data);
+      } catch (error) {
+        console.error('Error fetching sessions:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSessions();
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-slate-900">Session Monitor</h1>
+        <p className="text-slate-600 mt-2">Monitor academic sessions and terms across all schools</p>
+      </div>
+      
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">School Academic Sessions</h3>
+          
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-200">
+                    <th className="text-left py-3 px-4 font-medium text-slate-900">School Name</th>
+                    <th className="text-left py-3 px-4 font-medium text-slate-900">Current Session</th>
+                    <th className="text-left py-3 px-4 font-medium text-slate-900">Current Term</th>
+                    <th className="text-left py-3 px-4 font-medium text-slate-900">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sessions.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="text-center py-8 text-slate-500">
+                        No schools found
+                      </td>
+                    </tr>
+                  ) : (
+                    sessions.map((session) => (
+                      <tr key={session.schoolId} className="border-b border-slate-100">
+                        <td className="py-3 px-4 text-slate-900">{session.schoolName}</td>
+                        <td className="py-3 px-4 text-slate-900">{session.currentSession}</td>
+                        <td className="py-3 px-4 text-slate-900">{session.currentTerm}</td>
+                        <td className="py-3 px-4">
+                          <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                            Active
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Revenue Content Component
+const RevenueContent = () => {
+  const [revenue, setRevenue] = useState([]);
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchRevenue = async () => {
+      try {
+        const response = await axiosInstance.get('/admin/revenue');
+        setRevenue(response.data.payments);
+        setTotalRevenue(response.data.total);
+      } catch (error) {
+        console.error('Error fetching revenue:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRevenue();
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-slate-900">Revenue Reports</h1>
+        <p className="text-slate-600 mt-2">View financial analytics and payment history</p>
+      </div>
+      
+      {/* Total Revenue Card */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-slate-600">Total Revenue</p>
+            <p className="text-3xl font-bold text-slate-900 mt-2">
+              {loading ? '...' : `NGN ${totalRevenue.toLocaleString()}`}
+            </p>
+          </div>
+          <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <CreditCard className="w-6 h-6 text-green-600" />
+          </div>
+        </div>
+      </div>
+      
+      {/* Revenue Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">Payment History</h3>
+          
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-200">
+                    <th className="text-left py-3 px-4 font-medium text-slate-900">School</th>
+                    <th className="text-left py-3 px-4 font-medium text-slate-900">Amount</th>
+                    <th className="text-left py-3 px-4 font-medium text-slate-900">Date</th>
+                    <th className="text-left py-3 px-4 font-medium text-slate-900">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {revenue.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="text-center py-8 text-slate-500">
+                        No payments found
+                      </td>
+                    </tr>
+                  ) : (
+                    revenue.map((payment) => (
+                      <tr key={payment.id} className="border-b border-slate-100">
+                        <td className="py-3 px-4 text-slate-900">{payment.schoolName}</td>
+                        <td className="py-3 px-4 text-slate-900">NGN {payment.amount.toLocaleString()}</td>
+                        <td className="py-3 px-4 text-slate-900">{new Date(payment.date).toLocaleDateString()}</td>
+                        <td className="py-3 px-4">
+                          <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                            Completed
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Subscriptions Content Component
 const SubscriptionsContent = () => (
