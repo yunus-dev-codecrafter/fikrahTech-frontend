@@ -47,6 +47,8 @@ const Dashboard = () => {
   // Fetch stats from API
   const fetchStats = async () => {
     try {
+      const token = localStorage.getItem('token');
+      console.log('Token being sent for stats:', token);
       const response = await axiosInstance.get('/admin/stats');
       console.log('Stats response:', response.data);
       // Set stats with fallbacks for undefined values
@@ -58,6 +60,7 @@ const Dashboard = () => {
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
+      console.error('Error response:', error.response?.data);
       // Keep default values if API fails
       setStats({
         totalSchools: 0,
@@ -80,6 +83,8 @@ const Dashboard = () => {
     setSchoolFormLoading(true);
 
     try {
+      const token = localStorage.getItem('token');
+      console.log('Token being sent for school registration:', token);
       const response = await axiosInstance.post('/admin/schools', schoolForm);
       console.log('School registration response:', response.data);
       showToast('School registered successfully!', 'success');
@@ -95,6 +100,7 @@ const Dashboard = () => {
       fetchStats();
     } catch (error) {
       console.error('Error registering school:', error);
+      console.error('Error response:', error.response?.data);
       showToast(error.response?.data?.message || 'Failed to register school', 'error');
     } finally {
       setSchoolFormLoading(false);
@@ -514,11 +520,14 @@ const SessionsContent = () => {
   useEffect(() => {
     const fetchSessions = async () => {
       try {
+        const token = localStorage.getItem('token');
+        console.log('Token being sent for sessions:', token);
         const response = await axiosInstance.get('/admin/sessions');
         console.log('Sessions response:', response.data);
         setSessions(response.data || []);
       } catch (error) {
         console.error('Error fetching sessions:', error);
+        console.error('Error response:', error.response?.data);
         // Set empty array on error to prevent crashes
         setSessions([]);
       } finally {
@@ -602,12 +611,15 @@ const RevenueContent = () => {
   useEffect(() => {
     const fetchRevenue = async () => {
       try {
+        const token = localStorage.getItem('token');
+        console.log('Token being sent for revenue:', token);
         const response = await axiosInstance.get('/admin/revenue');
         console.log('Revenue response:', response.data);
         setRevenue(response.data?.payments || []);
         setTotalRevenue(response.data?.total || 0);
       } catch (error) {
         console.error('Error fetching revenue:', error);
+        console.error('Error response:', error.response?.data);
         // Set default values on error to prevent crashes
         setRevenue([]);
         setTotalRevenue(0);
