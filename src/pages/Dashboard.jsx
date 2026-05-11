@@ -48,10 +48,23 @@ const Dashboard = () => {
   const fetchStats = async () => {
     try {
       const response = await axiosInstance.get('/admin/stats');
-      setStats(response.data);
+      console.log('Stats response:', response.data);
+      // Set stats with fallbacks for undefined values
+      setStats({
+        totalSchools: response.data?.totalSchools || 0,
+        totalRevenue: response.data?.totalRevenue || 0,
+        totalStudents: response.data?.totalStudents || 0,
+        pendingRequests: response.data?.pendingRequests || 0
+      });
     } catch (error) {
       console.error('Error fetching stats:', error);
       // Keep default values if API fails
+      setStats({
+        totalSchools: 0,
+        totalRevenue: 0,
+        totalStudents: 0,
+        pendingRequests: 0
+      });
     } finally {
       setStatsLoading(false);
     }
@@ -68,6 +81,7 @@ const Dashboard = () => {
 
     try {
       const response = await axiosInstance.post('/admin/schools', schoolForm);
+      console.log('School registration response:', response.data);
       showToast('School registered successfully!', 'success');
       setShowSchoolModal(false);
       setSchoolForm({
@@ -501,9 +515,12 @@ const SessionsContent = () => {
     const fetchSessions = async () => {
       try {
         const response = await axiosInstance.get('/admin/sessions');
-        setSessions(response.data);
+        console.log('Sessions response:', response.data);
+        setSessions(response.data || []);
       } catch (error) {
         console.error('Error fetching sessions:', error);
+        // Set empty array on error to prevent crashes
+        setSessions([]);
       } finally {
         setLoading(false);
       }
@@ -545,15 +562,19 @@ const SessionsContent = () => {
                   {sessions.length === 0 ? (
                     <tr>
                       <td colSpan="4" className="text-center py-8 text-slate-500">
-                        No schools found
+                        No schools found or no session data available
                       </td>
                     </tr>
                   ) : (
                     sessions.map((session) => (
-                      <tr key={session.schoolId} className="border-b border-slate-100">
-                        <td className="py-3 px-4 text-slate-900">{session.schoolName}</td>
-                        <td className="py-3 px-4 text-slate-900">{session.currentSession}</td>
-                        <td className="py-3 px-4 text-slate-900">{session.currentTerm}</td>
+                      <tr key={session.school_id} className="border-b border-slate-100">
+                        <td className="py-3 px-4 text-slate-900">{session.school_name}</td>
+                        <td className="py-3 px-4 text-slate-900">
+                          {session.current_session || 'Not Set'}
+                        </td>
+                        <td className="py-3 px-4 text-slate-900">
+                          {session.current_term || 'Not Set'}
+                        </td>
                         <td className="py-3 px-4">
                           <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
                             Active
@@ -582,10 +603,14 @@ const RevenueContent = () => {
     const fetchRevenue = async () => {
       try {
         const response = await axiosInstance.get('/admin/revenue');
-        setRevenue(response.data.payments);
-        setTotalRevenue(response.data.total);
+        console.log('Revenue response:', response.data);
+        setRevenue(response.data?.payments || []);
+        setTotalRevenue(response.data?.total || 0);
       } catch (error) {
         console.error('Error fetching revenue:', error);
+        // Set default values on error to prevent crashes
+        setRevenue([]);
+        setTotalRevenue(0);
       } finally {
         setLoading(false);
       }
