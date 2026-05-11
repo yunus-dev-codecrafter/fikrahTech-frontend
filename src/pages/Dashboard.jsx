@@ -24,6 +24,7 @@ const Dashboard = () => {
   const [schoolForm, setSchoolForm] = useState({
     schoolName: '',
     proprietorEmail: '',
+    defaultPassword: 'ChangeMe@2026',
     initialSession: '2026/2027',
     initialTerm: 'First Term'
   });
@@ -72,6 +73,7 @@ const Dashboard = () => {
       setSchoolForm({
         schoolName: '',
         proprietorEmail: '',
+        defaultPassword: 'ChangeMe@2026',
         initialSession: '2026/2027',
         initialTerm: 'First Term'
       });
@@ -280,6 +282,20 @@ const Dashboard = () => {
                     onChange={(e) => setSchoolForm(prev => ({ ...prev, proprietorEmail: e.target.value }))}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter proprietor email"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Default Password
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={schoolForm.defaultPassword}
+                    onChange={(e) => setSchoolForm(prev => ({ ...prev, defaultPassword: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter default password for proprietor"
                   />
                 </div>
 
