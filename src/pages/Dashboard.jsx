@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../api/axios';
 import { 
   Menu, X, LayoutDashboard, School, Calendar, CreditCard, LogOut, 
   Bell, User, Home, Settings, Users, TrendingUp, Clock, AlertCircle
@@ -9,12 +10,36 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('overview');
+  const [stats, setStats] = useState({
+    totalSchools: 0,
+    totalRevenue: 0,
+    totalStudents: 0,
+    pendingRequests: 0
+  });
+  const [statsLoading, setStatsLoading] = useState(true);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');
   };
+
+  // Fetch stats from API
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await axiosInstance.get('/admin/stats');
+        setStats(response.data);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+        // Keep default values if API fails
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: Home },
@@ -26,7 +51,7 @@ const Dashboard = () => {
   const renderContent = () => {
     switch (activeSection) {
       case 'overview':
-        return <OverviewContent />;
+        return <OverviewContent stats={stats} statsLoading={statsLoading} />;
       case 'schools':
         return <SchoolsContent />;
       case 'academic':
@@ -34,7 +59,7 @@ const Dashboard = () => {
       case 'subscriptions':
         return <SubscriptionsContent />;
       default:
-        return <OverviewContent />;
+        return <OverviewContent stats={stats} statsLoading={statsLoading} />;
     }
   };
 
@@ -151,7 +176,7 @@ const Dashboard = () => {
 };
 
 // Overview Content Component
-const OverviewContent = () => (
+const OverviewContent = ({ stats, statsLoading }) => (
   <div className="space-y-6">
     <div className="mb-8">
       <h1 className="text-3xl font-bold text-slate-900">System Overview</h1>
@@ -164,7 +189,9 @@ const OverviewContent = () => (
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-slate-600">Total Schools</p>
-            <p className="text-3xl font-bold text-slate-900 mt-2">247</p>
+            <p className="text-3xl font-bold text-slate-900 mt-2">
+              {statsLoading ? '...' : stats.totalSchools.toLocaleString()}
+            </p>
             <p className="text-sm text-green-600 mt-2">+12% from last month</p>
           </div>
           <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -177,7 +204,9 @@ const OverviewContent = () => (
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-slate-600">Total Revenue</p>
-            <p className="text-3xl font-bold text-slate-900 mt-2">₦2.4M</p>
+            <p className="text-3xl font-bold text-slate-900 mt-2">
+              {statsLoading ? '...' : `NGN ${stats.totalRevenue.toLocaleString()}`}
+            </p>
             <p className="text-sm text-green-600 mt-2">+8% from last month</p>
           </div>
           <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -189,12 +218,14 @@ const OverviewContent = () => (
       <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-600">Current Session</p>
-            <p className="text-xl font-bold text-slate-900 mt-2">2025/2026</p>
-            <p className="text-sm text-slate-600 mt-2">First Term</p>
+            <p className="text-sm font-medium text-slate-600">Total Students</p>
+            <p className="text-3xl font-bold text-slate-900 mt-2">
+              {statsLoading ? '...' : stats.totalStudents.toLocaleString()}
+            </p>
+            <p className="text-sm text-green-600 mt-2">+5% from last month</p>
           </div>
           <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-            <Calendar className="w-6 h-6 text-purple-600" />
+            <Users className="w-6 h-6 text-purple-600" />
           </div>
         </div>
       </div>
@@ -203,7 +234,9 @@ const OverviewContent = () => (
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium text-slate-600">Pending Requests</p>
-            <p className="text-3xl font-bold text-slate-900 mt-2">18</p>
+            <p className="text-3xl font-bold text-slate-900 mt-2">
+              {statsLoading ? '...' : stats.pendingRequests.toLocaleString()}
+            </p>
             <p className="text-sm text-orange-600 mt-2">Requires attention</p>
           </div>
           <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
