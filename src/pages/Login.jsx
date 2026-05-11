@@ -35,6 +35,8 @@ const Login = () => {
         password: formData.password
       });
 
+      console.log('API Response:', response.data);
+
       // Handle successful login
       const { token, user } = response.data;
       
@@ -46,6 +48,7 @@ const Login = () => {
       navigate('/dashboard');
       
     } catch (err) {
+      console.error('Login Error details:', err.response?.data);
       // Handle API error
       const errorMessage = err.response?.data?.message || 'Invalid email or password';
       setError(errorMessage);
