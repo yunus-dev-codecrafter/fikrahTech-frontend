@@ -16,8 +16,11 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    if (token) {
+    // Only add Authorization header if token exists and has valid JWT format (3 parts separated by dots)
+    if (token && token.split('.').length === 3) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else if (token) {
+      console.warn('Invalid JWT token format detected, not sending Authorization header');
     }
     return config;
   },

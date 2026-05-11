@@ -33,6 +33,7 @@ const Dashboard = () => {
   const [toast, setToast] = useState(null);
 
   const handleLogout = () => {
+    console.log('Logging out - clearing localStorage');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');
