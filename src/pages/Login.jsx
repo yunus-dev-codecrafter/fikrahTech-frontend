@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User, Lock, Eye, EyeOff, School } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import axiosInstance from '../api/axios';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -27,21 +28,30 @@ const Login = () => {
     setLoading(true);
     setError('');
 
-    // Log credentials to console
-    console.log('Login attempt:', {
-      email: formData.email,
-      password: formData.password
-    });
+    try {
+      // Send login request to backend API
+      const response = await axiosInstance.post('/auth/login', {
+        email: formData.email,
+        password: formData.password
+      });
 
-    // Check if fields are not empty
-    if (formData.email && formData.password) {
+      // Handle successful login
+      const { token, user } = response.data;
+      
+      // Save user info to localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+      
       // Navigate to dashboard
       navigate('/dashboard');
-    } else {
-      setError('Please fill in all fields');
+      
+    } catch (err) {
+      // Handle API error
+      const errorMessage = err.response?.data?.message || 'Invalid email or password';
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (
