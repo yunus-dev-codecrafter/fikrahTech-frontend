@@ -22,11 +22,11 @@ const Dashboard = () => {
   const [showSchoolModal, setShowSchoolModal] = useState(false);
   const [schoolFormLoading, setSchoolFormLoading] = useState(false);
   const [schoolForm, setSchoolForm] = useState({
-    schoolName: '',
-    proprietorEmail: '',
-    defaultPassword: 'ChangeMe@2026',
-    initialSession: '2026/2027',
-    initialTerm: 'First Term'
+    name: '',
+    email: '',
+    password: 'ChangeMe@2026',
+    current_session: '2026/2027',
+    current_term: 'First Term'
   });
   
   // Toast notification state
@@ -86,16 +86,21 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem('token');
       console.log('Token being sent for school registration:', token);
+      console.log('Sending data:', { 
+        name: schoolForm.name, 
+        email: schoolForm.email, 
+        password: schoolForm.password 
+      });
       const response = await axiosInstance.post('/admin/schools', schoolForm);
       console.log('School registration response:', response.data);
       showToast('School registered successfully!', 'success');
       setShowSchoolModal(false);
       setSchoolForm({
-        schoolName: '',
-        proprietorEmail: '',
-        defaultPassword: 'ChangeMe@2026',
-        initialSession: '2026/2027',
-        initialTerm: 'First Term'
+        name: '',
+        email: '',
+        password: 'ChangeMe@2026',
+        current_session: '2026/2027',
+        current_term: 'First Term'
       });
       // Refresh stats to show new school count
       fetchStats();
@@ -285,8 +290,8 @@ const Dashboard = () => {
                   <input
                     type="text"
                     required
-                    value={schoolForm.schoolName}
-                    onChange={(e) => setSchoolForm(prev => ({ ...prev, schoolName: e.target.value }))}
+                    value={schoolForm.name}
+                    onChange={(e) => setSchoolForm(prev => ({ ...prev, name: e.target.value }))}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter school name"
                   />
@@ -299,8 +304,8 @@ const Dashboard = () => {
                   <input
                     type="email"
                     required
-                    value={schoolForm.proprietorEmail}
-                    onChange={(e) => setSchoolForm(prev => ({ ...prev, proprietorEmail: e.target.value }))}
+                    value={schoolForm.email}
+                    onChange={(e) => setSchoolForm(prev => ({ ...prev, email: e.target.value }))}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter proprietor email"
                   />
@@ -313,8 +318,8 @@ const Dashboard = () => {
                   <input
                     type="text"
                     required
-                    value={schoolForm.defaultPassword}
-                    onChange={(e) => setSchoolForm(prev => ({ ...prev, defaultPassword: e.target.value }))}
+                    value={schoolForm.password}
+                    onChange={(e) => setSchoolForm(prev => ({ ...prev, password: e.target.value }))}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter default password for proprietor"
                   />
@@ -325,8 +330,8 @@ const Dashboard = () => {
                     Initial Session
                   </label>
                   <select
-                    value={schoolForm.initialSession}
-                    onChange={(e) => setSchoolForm(prev => ({ ...prev, initialSession: e.target.value }))}
+                    value={schoolForm.current_session}
+                    onChange={(e) => setSchoolForm(prev => ({ ...prev, current_session: e.target.value }))}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="2025/2026">2025/2026</option>
@@ -340,8 +345,8 @@ const Dashboard = () => {
                     Initial Term
                   </label>
                   <select
-                    value={schoolForm.initialTerm}
-                    onChange={(e) => setSchoolForm(prev => ({ ...prev, initialTerm: e.target.value }))}
+                    value={schoolForm.current_term}
+                    onChange={(e) => setSchoolForm(prev => ({ ...prev, current_term: e.target.value }))}
                     className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="First Term">First Term</option>
