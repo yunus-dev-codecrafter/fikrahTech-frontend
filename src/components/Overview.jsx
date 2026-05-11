@@ -32,12 +32,12 @@ const Overview = () => {
       console.log('Token being sent for stats:', token);
       const response = await axiosInstance.get('/admin/stats');
       console.log('Stats response:', response.data);
-      console.log('Stats received:', response.data.stats);
+      console.log('Stats received:', response.data?.stats);
       setStats({
-        totalSchools: response.data?.stats?.totalSchools || 0,
-        totalRevenue: response.data?.stats?.totalRevenue || 0,
-        totalStudents: response.data?.stats?.totalStudents || 0,
-        pendingRequests: response.data?.stats?.pendingRequests || 0
+        totalSchools: response.data?.data?.stats?.totalSchools || response.data?.stats?.totalSchools || 0,
+        totalRevenue: response.data?.data?.stats?.totalRevenue || response.data?.stats?.totalRevenue || 0,
+        totalStudents: response.data?.data?.stats?.totalStudents || response.data?.stats?.totalStudents || 0,
+        pendingRequests: response.data?.data?.stats?.pendingRequests || response.data?.stats?.pendingRequests || 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);

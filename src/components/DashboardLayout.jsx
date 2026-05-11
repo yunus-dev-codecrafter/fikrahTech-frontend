@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { NavLink, useNavigate, Outlet } from 'react-router-dom';
 import { 
   Menu, X, LayoutDashboard, School, Calendar, CreditCard, LogOut, 
-  Bell, User, Home, Settings, Users, TrendingUp, Clock, AlertCircle
+  Bell, User, Home, Users, TrendingUp, Clock, AlertCircle
 } from 'lucide-react';
 
 const DashboardLayout = () => {

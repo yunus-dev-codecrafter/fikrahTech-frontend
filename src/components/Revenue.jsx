@@ -14,8 +14,8 @@ const Revenue = () => {
         console.log('Token being sent for revenue:', token);
         const response = await axiosInstance.get('/admin/revenue');
         console.log('Revenue response:', response.data);
-        setRevenue(response.data?.payments || []);
-        setTotalRevenue(response.data?.total || 0);
+        setRevenue(response.data?.data?.payments || response.data?.payments || []);
+        setTotalRevenue(response.data?.data?.total || response.data?.total || 0);
       } catch (error) {
         console.error('Error fetching revenue:', error);
         console.error('Error response:', error.response?.data);

@@ -12,7 +12,7 @@ const Schools = () => {
         console.log('Token being sent for schools:', token);
         const response = await axiosInstance.get('/admin/schools');
         console.log('Schools response:', response.data);
-        setSchools(response.data || []);
+        setSchools(response.data?.data || response.data || []);
       } catch (error) {
         console.error('Error fetching schools:', error);
         console.error('Error response:', error.response?.data);

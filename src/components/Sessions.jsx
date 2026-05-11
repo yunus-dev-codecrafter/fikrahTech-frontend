@@ -12,7 +12,7 @@ const Sessions = () => {
         console.log('Token being sent for sessions:', token);
         const response = await axiosInstance.get('/admin/sessions');
         console.log('Sessions response:', response.data);
-        setSessions(response.data || []);
+        setSessions(response.data?.data || response.data || []);
       } catch (error) {
         console.error('Error fetching sessions:', error);
         console.error('Error response:', error.response?.data);
