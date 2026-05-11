@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axiosInstance from '../api/axios';
 import { 
   Menu, X, LayoutDashboard, School, Calendar, CreditCard, LogOut, 
@@ -52,12 +52,13 @@ const Dashboard = () => {
       console.log('Token being sent for stats:', token);
       const response = await axiosInstance.get('/admin/stats');
       console.log('Stats response:', response.data);
-      // Set stats with fallbacks for undefined values
+      console.log('Stats received:', response.data.stats);
+      // Set stats with fallbacks for undefined values - accessing nested stats object
       setStats({
-        totalSchools: response.data?.totalSchools || 0,
-        totalRevenue: response.data?.totalRevenue || 0,
-        totalStudents: response.data?.totalStudents || 0,
-        pendingRequests: response.data?.pendingRequests || 0
+        totalSchools: response.data?.stats?.totalSchools || 0,
+        totalRevenue: response.data?.stats?.totalRevenue || 0,
+        totalStudents: response.data?.stats?.totalStudents || 0,
+        pendingRequests: response.data?.stats?.pendingRequests || 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -114,11 +115,11 @@ const Dashboard = () => {
   };
 
   const menuItems = [
-    { id: 'overview', label: 'Overview', icon: Home },
-    { id: 'schools', label: 'School Management', icon: School },
-    { id: 'sessions', label: 'Session Monitor', icon: Calendar },
-    { id: 'revenue', label: 'Revenue Reports', icon: CreditCard },
-    { id: 'subscriptions', label: 'Subscription Plans', icon: CreditCard },
+    { id: 'overview', label: 'Overview', icon: Home, path: '/dashboard' },
+    { id: 'schools', label: 'School Management', icon: School, path: '/dashboard/schools' },
+    { id: 'sessions', label: 'Session Monitor', icon: Calendar, path: '/dashboard/sessions' },
+    { id: 'revenue', label: 'Revenue Reports', icon: CreditCard, path: '/dashboard/revenue' },
+    { id: 'subscriptions', label: 'Subscription Plans', icon: CreditCard, path: '/dashboard/subscriptions' },
   ];
 
   const renderContent = () => {
@@ -192,11 +193,9 @@ const Dashboard = () => {
                 const Icon = item.icon;
                 return (
                   <li key={item.id}>
-                    <button
-                      onClick={() => {
-                        setActiveSection(item.id);
-                        setSidebarOpen(false);
-                      }}
+                    <Link
+                      to={item.path}
+                      onClick={() => setSidebarOpen(false)}
                       className={`
                         w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors
                         ${activeSection === item.id 
@@ -207,7 +206,7 @@ const Dashboard = () => {
                     >
                       <Icon className="w-5 h-5" />
                       <span>{item.label}</span>
-                    </button>
+                    </Link>
                   </li>
                 );
               })}
@@ -489,19 +488,96 @@ const OverviewContent = ({ stats, statsLoading, setShowSchoolModal }) => (
 );
 
 // Schools Content Component
-const SchoolsContent = () => (
-  <div className="space-y-6">
-    <div className="mb-8">
-      <h1 className="text-3xl font-bold text-slate-900">School Management</h1>
-      <p className="text-slate-600 mt-2">Manage all registered schools and their staff accounts</p>
+const SchoolsContent = () => {
+  const [schools, setSchools] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchSchools = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        console.log('Token being sent for schools:', token);
+        const response = await axiosInstance.get('/admin/schools');
+        console.log('Schools response:', response.data);
+        setSchools(response.data || []);
+      } catch (error) {
+        console.error('Error fetching schools:', error);
+        console.error('Error response:', error.response?.data);
+        // Set empty array on error to prevent crashes
+        setSchools([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchools();
+  }, []);
+
+  return (
+    <div className="space-y-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-slate-900">School Management</h1>
+        <p className="text-slate-600 mt-2">Manage all registered schools and their staff accounts</p>
+      </div>
+      
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-slate-900 mb-4">Registered Schools</h3>
+          
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-slate-200">
+                    <th className="text-left py-3 px-4 font-medium text-slate-900">School Name</th>
+                    <th className="text-left py-3 px-4 font-medium text-slate-900">Proprietor Email</th>
+                    <th className="text-left py-3 px-4 font-medium text-slate-900">Status</th>
+                    <th className="text-left py-3 px-4 font-medium text-slate-900">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {schools.length === 0 ? (
+                    <tr>
+                      <td colSpan="4" className="text-center py-8 text-slate-500">
+                        No schools found
+                      </td>
+                    </tr>
+                  ) : (
+                    schools.map((school) => (
+                      <tr key={school.id} className="border-b border-slate-100">
+                        <td className="py-3 px-4 text-slate-900">{school.name}</td>
+                        <td className="py-3 px-4 text-slate-900">{school.proprietor_email}</td>
+                        <td className="py-3 px-4">
+                          <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                            school.is_blocked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                          }`}>
+                            {school.is_blocked ? 'Blocked' : 'Active'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <button className="text-blue-600 hover:text-blue-800 text-sm">
+                            Reset Password
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
-    
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-      <p className="text-slate-600">School management interface will be implemented here.</p>
-      <p className="text-sm text-slate-500 mt-2">Features: View schools, search, filter, password reset for staff</p>
-    </div>
-  </div>
-);
+  );
+};
 
 // Academic Content Component
 const AcademicContent = () => (
