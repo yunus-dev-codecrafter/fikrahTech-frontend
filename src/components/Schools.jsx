@@ -12,7 +12,7 @@ const Schools = () => {
         console.log('Token being sent for schools:', token);
         const response = await axiosInstance.get('/admin/schools');
         console.log('Schools response:', response.data);
-        setSchools(response.data?.data || response.data || []);
+        setSchools(response.data?.schools || response.data?.data || response.data || []);
       } catch (error) {
         console.error('Error fetching schools:', error);
         console.error('Error response:', error.response?.data);
@@ -55,7 +55,7 @@ const Schools = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {schools.length === 0 ? (
+                  {!Array.isArray(schools) || schools.length === 0 ? (
                     <tr>
                       <td colSpan="4" className="text-center py-8 text-slate-500">
                         No schools found

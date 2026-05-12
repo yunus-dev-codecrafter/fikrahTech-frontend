@@ -12,7 +12,7 @@ const Sessions = () => {
         console.log('Token being sent for sessions:', token);
         const response = await axiosInstance.get('/admin/sessions');
         console.log('Sessions response:', response.data);
-        setSessions(response.data?.data || response.data || []);
+        setSessions(response.data?.sessions || response.data?.data || response.data || []);
       } catch (error) {
         console.error('Error fetching sessions:', error);
         console.error('Error response:', error.response?.data);
@@ -55,7 +55,7 @@ const Sessions = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {sessions.length === 0 ? (
+                  {!Array.isArray(sessions) || sessions.length === 0 ? (
                     <tr>
                       <td colSpan="4" className="text-center py-8 text-slate-500">
                         No schools found or no session data available

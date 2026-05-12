@@ -14,8 +14,8 @@ const Revenue = () => {
         console.log('Token being sent for revenue:', token);
         const response = await axiosInstance.get('/admin/revenue');
         console.log('Revenue response:', response.data);
-        setRevenue(response.data?.data?.payments || response.data?.payments || []);
-        setTotalRevenue(response.data?.data?.total || response.data?.total || 0);
+        setRevenue(response.data?.payments || response.data?.data?.payments || []);
+        setTotalRevenue(response.data?.total || response.data?.data?.total || 0);
       } catch (error) {
         console.error('Error fetching revenue:', error);
         console.error('Error response:', error.response?.data);
@@ -75,7 +75,7 @@ const Revenue = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {revenue.length === 0 ? (
+                  {!Array.isArray(revenue) || revenue.length === 0 ? (
                     <tr>
                       <td colSpan="4" className="text-center py-8 text-slate-500">
                         No payments found
