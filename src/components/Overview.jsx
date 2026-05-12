@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axiosInstance from '../api/axios';
-import { School, CreditCard, Users, TrendingUp, AlertCircle } from 'lucide-react';
+import { School, CreditCard, Users, TrendingUp, AlertCircle, Settings, X } from 'lucide-react';
 
 const Overview = () => {
   const [stats, setStats] = useState({
