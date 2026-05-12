@@ -50,12 +50,16 @@ const Subscriptions = () => {
       const token = localStorage.getItem('token');
       console.log('Creating plan with data:', formData);
       
-      // Filter out empty features
+      // Filter out empty features and ensure proper data format
       const planData = {
-        ...formData,
+        name: formData.name.trim(),
+        price: parseFloat(formData.price),
+        interval: formData.interval,
         features: formData.features.filter(feature => feature.trim() !== ''),
-        price: parseFloat(formData.price) // Ensure price is a number
+        is_active: true // Default to active
       };
+      
+      console.log('Sending plan data:', JSON.stringify(planData, null, 2));
       
       const response = await axiosInstance.post('/admin/plans', planData);
       console.log('Plan creation response:', response.data);
@@ -81,6 +85,8 @@ const Subscriptions = () => {
         console.error('Plans endpoint not found - backend route may be missing');
       } else if (error.response?.status === 500) {
         console.error('Server error - subscription_plans table may be missing');
+        console.error('Backend needs: CREATE TABLE IF NOT EXISTS subscription_plans');
+        console.error('Table columns: id (INT AUTO_INCREMENT), name (VARCHAR), price (DECIMAL), interval (VARCHAR), features (TEXT), is_active (BOOLEAN)');
       }
     } finally {
       setFormLoading(false);
