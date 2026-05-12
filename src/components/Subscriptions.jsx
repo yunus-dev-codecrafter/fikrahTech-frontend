@@ -25,6 +25,14 @@ const Subscriptions = () => {
       } catch (error) {
         console.error('Error fetching plans:', error);
         console.error('Error response:', error.response?.data);
+        
+        // Handle specific error cases
+        if (error.response?.status === 404) {
+          console.error('Plans endpoint not found - backend route may be missing');
+        } else if (error.response?.status === 500) {
+          console.error('Server error - subscription_plans table may be missing');
+        }
+        
         setPlans([]);
       } finally {
         setLoading(false);
@@ -41,7 +49,15 @@ const Subscriptions = () => {
     try {
       const token = localStorage.getItem('token');
       console.log('Creating plan with data:', formData);
-      const response = await axiosInstance.post('/admin/plans', formData);
+      
+      // Filter out empty features
+      const planData = {
+        ...formData,
+        features: formData.features.filter(feature => feature.trim() !== ''),
+        price: parseFloat(formData.price) // Ensure price is a number
+      };
+      
+      const response = await axiosInstance.post('/admin/plans', planData);
       console.log('Plan creation response:', response.data);
       
       // Reset form and hide
@@ -59,6 +75,13 @@ const Subscriptions = () => {
     } catch (error) {
       console.error('Error creating plan:', error);
       console.error('Error response:', error.response?.data);
+      
+      // Show user-friendly error message
+      if (error.response?.status === 404) {
+        console.error('Plans endpoint not found - backend route may be missing');
+      } else if (error.response?.status === 500) {
+        console.error('Server error - subscription_plans table may be missing');
+      }
     } finally {
       setFormLoading(false);
     }
