@@ -3,88 +3,168 @@ import axiosInstance from '../api/axios';
 
 const Sessions = () => {
   const [sessions, setSessions] = useState([]);
+  const [schools, setSchools] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchSessions = async () => {
+    const fetchData = async () => {
       try {
         const token = localStorage.getItem('token');
         console.log('Token being sent for sessions:', token);
-        const response = await axiosInstance.get('/admin/sessions');
-        console.log('Sessions response:', response.data);
-        setSessions(response.data?.sessions || response.data?.data || response.data || []);
+        
+        // Try to fetch sessions first
+        const sessionsResponse = await axiosInstance.get('/admin/sessions');
+        console.log('Sessions response:', sessionsResponse.data);
+        setSessions(sessionsResponse.data?.sessions || sessionsResponse.data?.data || response.data || []);
+        
+        // Also fetch schools as fallback
+        const schoolsResponse = await axiosInstance.get('/admin/schools');
+        console.log('Schools response (fallback):', schoolsResponse.data);
+        setSchools(schoolsResponse.data?.schools || schoolsResponse.data?.data || response.data || []);
+        
+        setError(null);
       } catch (error) {
         console.error('Error fetching sessions:', error);
         console.error('Error response:', error.response?.data);
+        setError('Failed to load session data. Showing schools list instead.');
         setSessions([]);
+        
+        // Still try to fetch schools as fallback
+        try {
+          const schoolsResponse = await axiosInstance.get('/admin/schools');
+          console.log('Schools response (fallback):', schoolsResponse.data);
+          setSchools(schoolsResponse.data?.schools || schoolsResponse.data?.data || response.data || []);
+        } catch (schoolsError) {
+          console.error('Error fetching schools as fallback:', schoolsError);
+          setSchools([]);
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSessions();
+    fetchData();
   }, []);
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
+          <p className="text-yellow-800">{error}</p>
+        </div>
+      )}
+      
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-slate-900">Session Monitor</h1>
         <p className="text-slate-600 mt-2">Monitor academic sessions and terms across all schools</p>
       </div>
       
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200">
-        <div className="p-6">
-          <h3 className="text-lg font-semibold text-slate-900 mb-4">School Academic Sessions</h3>
-          
-          {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-slate-200">
-                    <th className="text-left py-3 px-4 font-medium text-slate-900">School Name</th>
-                    <th className="text-left py-3 px-4 font-medium text-slate-900">Current Session</th>
-                    <th className="text-left py-3 px-4 font-medium text-slate-900">Current Term</th>
-                    <th className="text-left py-3 px-4 font-medium text-slate-900">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {!Array.isArray(sessions) || sessions.length === 0 ? (
-                    <tr>
-                      <td colSpan="4" className="text-center py-8 text-slate-500">
-                        No schools found or no session data available
-                      </td>
+      {/* Show sessions if available, otherwise show schools */}
+      {sessions.length > 0 ? (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">School Academic Sessions</h3>
+            
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left py-3 px-4 font-medium text-slate-900">School Name</th>
+                      <th className="text-left py-3 px-4 font-medium text-slate-900">Current Session</th>
+                      <th className="text-left py-3 px-4 font-medium text-slate-900">Current Term</th>
+                      <th className="text-left py-3 px-4 font-medium text-slate-900">Status</th>
                     </tr>
-                  ) : (
-                    sessions.map((session) => (
-                      <tr key={session.school_id} className="border-b border-slate-100">
-                        <td className="py-3 px-4 text-slate-900">{session.school_name}</td>
-                        <td className="py-3 px-4 text-slate-900">
-                          {session.current_session || 'Not Set'}
-                        </td>
-                        <td className="py-3 px-4 text-slate-900">
-                          {session.current_term || 'Not Set'}
-                        </td>
-                        <td className="py-3 px-4">
-                          <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
-                            Active
-                          </span>
+                  </thead>
+                  <tbody>
+                    {!Array.isArray(sessions) || sessions.length === 0 ? (
+                      <tr>
+                        <td colSpan="4" className="text-center py-8 text-slate-500">
+                          No schools found or no session data available
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
+                    ) : (
+                      sessions.map((session) => (
+                        <tr key={session.school_id} className="border-b border-slate-100">
+                          <td className="py-3 px-4 text-slate-900">{session.school_name}</td>
+                          <td className="py-3 px-4 text-slate-900">
+                            {session.current_session || 'Not Set'}
+                          </td>
+                          <td className="py-3 px-4 text-slate-900">
+                            {session.current_term || 'Not Set'}
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="inline-flex px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                              Active
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      ) : (
+        /* Show schools as fallback when sessions are not available */
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Registered Schools</h3>
+            
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left py-3 px-4 font-medium text-slate-900">School Name</th>
+                      <th className="text-left py-3 px-4 font-medium text-slate-900">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {!Array.isArray(schools) || schools.length === 0 ? (
+                      <tr>
+                        <td colSpan="2" className="text-center py-8 text-slate-500">
+                          No schools found
+                        </td>
+                      </tr>
+                    ) : (
+                      schools.map((school) => (
+                        <tr key={school.id} className="border-b border-slate-100">
+                          <td className="py-3 px-4 text-slate-900">{school.name}</td>
+                          <td className="py-3 px-4">
+                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                              school.is_blocked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                            }`}>
+                              {school.is_blocked ? 'Blocked' : 'Active'}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
