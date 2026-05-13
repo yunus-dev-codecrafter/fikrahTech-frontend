@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import axiosInstance from '../api/axios';
 import { 
   Menu, X, LayoutDashboard, School, Calendar, CreditCard, LogOut, 
-  Bell, User, Home, Settings, Users, TrendingUp, Clock, AlertCircle
+  Bell, User, Home, Settings, Users, TrendingUp, Clock, AlertCircle,
+  Edit, Ban, Trash2, Lock
 } from 'lucide-react';
 
 const Dashboard = () => {
@@ -489,29 +490,59 @@ const OverviewContent = ({ stats, statsLoading, setShowSchoolModal }) => (
 
 // Schools Content Component
 const SchoolsContent = () => {
+  const navigate = useNavigate();
   const [schools, setSchools] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchSchools = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        console.log('Token being sent for schools:', token);
-        const response = await axiosInstance.get('/admin/schools');
-        console.log('Schools response:', response.data);
-        setSchools(response.data || []);
-      } catch (error) {
-        console.error('Error fetching schools:', error);
-        console.error('Error response:', error.response?.data);
-        // Set empty array on error to prevent crashes
-        setSchools([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchSchools = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      console.log('Token being sent for schools:', token);
+      const response = await axiosInstance.get('/admin/schools');
+      console.log('Schools response:', response.data);
+      setSchools(response.data || []);
+    } catch (error) {
+      console.error('Error fetching schools:', error);
+      console.error('Error response:', error.response?.data);
+      setSchools([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchSchools();
   }, []);
+
+  const handleBlockToggle = async (schoolId, currentStatus) => {
+    try {
+      const response = await axiosInstance.patch(`/admin/schools/${schoolId}/block`, {
+        is_blocked: !currentStatus
+      });
+      console.log('Block toggle response:', response.data);
+      // Refresh the list
+      fetchSchools();
+    } catch (error) {
+      console.error('Error toggling block status:', error);
+      alert(error.response?.data?.message || 'Failed to update school status');
+    }
+  };
+
+  const handleDelete = async (schoolId) => {
+    if (!window.confirm('Are you sure you want to delete this school? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      const response = await axiosInstance.delete(`/admin/schools/${schoolId}`);
+      console.log('Delete response:', response.data);
+      // Refresh the list
+      fetchSchools();
+    } catch (error) {
+      console.error('Error deleting school:', error);
+      alert(error.response?.data?.message || 'Failed to delete school');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -552,7 +583,7 @@ const SchoolsContent = () => {
                   ) : (
                     schools.map((school) => (
                       <tr key={school.id} className="border-b border-slate-100">
-                        <td className="py-3 px-4 text-slate-900">{school.name}</td>
+                        <td className="py-3 px-4 text-slate-900 font-medium">{school.name}</td>
                         <td className="py-3 px-4 text-slate-900">{school.proprietor_email}</td>
                         <td className="py-3 px-4">
                           <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
@@ -562,9 +593,33 @@ const SchoolsContent = () => {
                           </span>
                         </td>
                         <td className="py-3 px-4">
-                          <button className="text-blue-600 hover:text-blue-800 text-sm">
-                            Reset Password
-                          </button>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => navigate(`/admin/schools/${school.id}`)}
+                              className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors"
+                              title="Edit School"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleBlockToggle(school.id, school.is_blocked)}
+                              className={`p-2 rounded-lg transition-colors ${
+                                school.is_blocked 
+                                  ? 'text-green-600 hover:text-green-800 hover:bg-green-50' 
+                                  : 'text-red-600 hover:text-red-800 hover:bg-red-50'
+                              }`}
+                              title={school.is_blocked ? 'Unblock School' : 'Block School'}
+                            >
+                              {school.is_blocked ? <Lock className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+                            </button>
+                            <button
+                              onClick={() => handleDelete(school.id)}
+                              className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete School"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -792,8 +847,11 @@ const RevenueContent = () => {
 // Subscriptions Content Component
 const SubscriptionsContent = () => {
   const [plans, setPlans] = useState([]);
+  const [schools, setSchools] = useState([]);
+  const [schoolSubscriptions, setSchoolSubscriptions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const [planForm, setPlanForm] = useState({
     name: '',
@@ -801,6 +859,11 @@ const SubscriptionsContent = () => {
     duration_months: '',
     max_students: '',
     features: ''
+  });
+  const [subscriptionForm, setSubscriptionForm] = useState({
+    school_id: '',
+    plan_id: '',
+    start_date: new Date().toISOString().split('T')[0]
   });
 
   const fetchPlans = async () => {
@@ -814,16 +877,41 @@ const SubscriptionsContent = () => {
       console.error('Error fetching plans:', error);
       console.error('Error response:', error.response?.data);
       setPlans([]);
+    }
+  };
+
+  const fetchSchools = async () => {
+    try {
+      const response = await axiosInstance.get('/admin/schools');
+      console.log('Schools response:', response.data);
+      setSchools(response.data || []);
+    } catch (error) {
+      console.error('Error fetching schools:', error);
+      setSchools([]);
+    }
+  };
+
+  const fetchSchoolSubscriptions = async () => {
+    try {
+      const response = await axiosInstance.get('/admin/school-subscriptions');
+      console.log('School subscriptions response:', response.data);
+      setSchoolSubscriptions(response.data || []);
+    } catch (error) {
+      console.error('Error fetching school subscriptions:', error);
+      setSchoolSubscriptions([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchPlans();
+    const fetchData = async () => {
+      await Promise.all([fetchPlans(), fetchSchools(), fetchSchoolSubscriptions()]);
+    };
+    fetchData();
   }, []);
 
-  const handleSubmit = async (e) => {
+  const handlePlanSubmit = async (e) => {
     e.preventDefault();
     setFormLoading(true);
 
@@ -831,7 +919,6 @@ const SubscriptionsContent = () => {
       const token = localStorage.getItem('token');
       console.log('Token being sent for plan creation:', token);
       
-      // Parse features as JSON array
       const featuresArray = planForm.features.split('\n').filter(f => f.trim());
       
       const response = await axiosInstance.post('/admin/plans', {
@@ -844,10 +931,8 @@ const SubscriptionsContent = () => {
       
       console.log('Plan creation response:', response.data);
       
-      // Refresh the list immediately
       await fetchPlans();
       
-      // Clear form fields
       setPlanForm({
         name: '',
         price: '',
@@ -856,11 +941,47 @@ const SubscriptionsContent = () => {
         features: ''
       });
       
-      setShowModal(false);
+      setShowPlanModal(false);
     } catch (error) {
       console.error('Error creating plan:', error);
-      console.error('Error response:', error.response?.data);
       alert(error.response?.data?.message || 'Failed to create plan');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleSubscriptionSubmit = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
+
+    try {
+      const selectedPlan = plans.find(p => p.id === parseInt(subscriptionForm.plan_id));
+      const startDate = new Date(subscriptionForm.start_date);
+      const expiryDate = new Date(startDate);
+      expiryDate.setMonth(expiryDate.getMonth() + selectedPlan.duration_months);
+
+      const response = await axiosInstance.post('/admin/school-subscriptions', {
+        school_id: parseInt(subscriptionForm.school_id),
+        plan_id: parseInt(subscriptionForm.plan_id),
+        start_date: subscriptionForm.start_date,
+        expiry_date: expiryDate.toISOString().split('T')[0]
+      });
+      
+      console.log('Subscription creation response:', response.data);
+      
+      await fetchSchoolSubscriptions();
+      
+      setSubscriptionForm({
+        school_id: '',
+        plan_id: '',
+        start_date: new Date().toISOString().split('T')[0]
+      });
+      
+      setShowSubscriptionModal(false);
+      alert('Subscription assigned successfully!');
+    } catch (error) {
+      console.error('Error assigning subscription:', error);
+      alert(error.response?.data?.message || 'Failed to assign subscription');
     } finally {
       setFormLoading(false);
     }
@@ -873,14 +994,12 @@ const SubscriptionsContent = () => {
   const renderFeatures = (features) => {
     let featuresArray;
     try {
-      // If features is a string (JSON.stringify), parse it
       if (typeof features === 'string') {
         featuresArray = JSON.parse(features);
       } else {
         featuresArray = features;
       }
     } catch (e) {
-      // If parsing fails, treat as single feature
       featuresArray = [features];
     }
 
@@ -897,15 +1016,30 @@ const SubscriptionsContent = () => {
     );
   };
 
+  const getSubscriptionStatus = (expiryDate) => {
+    const today = new Date();
+    const expiry = new Date(expiryDate);
+    const daysUntilExpiry = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+    
+    if (daysUntilExpiry < 0) {
+      return { text: 'Expired', color: 'bg-red-100 text-red-800' };
+    } else if (daysUntilExpiry <= 30) {
+      return { text: `Expiring in ${daysUntilExpiry} days`, color: 'bg-yellow-100 text-yellow-800' };
+    } else {
+      return { text: 'Active', color: 'bg-green-100 text-green-800' };
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Plan Management Section */}
       <div className="mb-8 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">Subscription Plans</h1>
           <p className="text-slate-600 mt-2">Define and manage subscription plans for schools</p>
         </div>
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => setShowPlanModal(true)}
           className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
           Create New Plan
@@ -969,22 +1103,105 @@ const SubscriptionsContent = () => {
         </div>
       </div>
 
+      {/* School Subscriptions Section */}
+      <div className="mt-12">
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-900">School Subscriptions</h2>
+            <p className="text-slate-600 mt-2">Assign and manage school subscriptions</p>
+          </div>
+          <button
+            onClick={() => setShowSubscriptionModal(true)}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Assign Subscription
+          </button>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200">
+          <div className="p-6">
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Active Subscriptions</h3>
+            
+            {loading ? (
+              <div className="flex items-center justify-center py-8">
+                <svg className="animate-spin h-8 w-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200">
+                      <th className="text-left py-3 px-4 font-medium text-slate-900">School</th>
+                      <th className="text-left py-3 px-4 font-medium text-slate-900">Plan</th>
+                      <th className="text-left py-3 px-4 font-medium text-slate-900">Start Date</th>
+                      <th className="text-left py-3 px-4 font-medium text-slate-900">Expiry Date</th>
+                      <th className="text-left py-3 px-4 font-medium text-slate-900">Status</th>
+                      <th className="text-left py-3 px-4 font-medium text-slate-900">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {schoolSubscriptions.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="text-center py-8 text-slate-500">
+                          No school subscriptions found
+                        </td>
+                      </tr>
+                    ) : (
+                      schoolSubscriptions.map((sub) => {
+                        const school = schools.find(s => s.id === sub.school_id);
+                        const plan = plans.find(p => p.id === sub.plan_id);
+                        const status = getSubscriptionStatus(sub.expiry_date);
+                        
+                        return (
+                          <tr key={sub.id} className="border-b border-slate-100">
+                            <td className="py-3 px-4 text-slate-900 font-medium">{school?.name || 'Unknown'}</td>
+                            <td className="py-3 px-4 text-slate-900">{plan?.name || 'Unknown'}</td>
+                            <td className="py-3 px-4 text-slate-900">{new Date(sub.start_date).toLocaleDateString()}</td>
+                            <td className="py-3 px-4 text-slate-900">{new Date(sub.expiry_date).toLocaleDateString()}</td>
+                            <td className="py-3 px-4">
+                              <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${status.color}`}>
+                                {status.text}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <button className="text-blue-600 hover:text-blue-800 text-sm mr-3">
+                                Renew
+                              </button>
+                              <button className="text-red-600 hover:text-red-800 text-sm">
+                                Cancel
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Create Plan Modal */}
-      {showModal && (
+      {showPlanModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-xl font-bold text-slate-900">Create New Plan</h3>
                 <button
-                  onClick={() => setShowModal(false)}
+                  onClick={() => setShowPlanModal(false)}
                   className="text-slate-400 hover:text-slate-600"
                 >
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handlePlanSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">
                     Plan Name
@@ -1061,7 +1278,7 @@ const SubscriptionsContent = () => {
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="button"
-                    onClick={() => setShowModal(false)}
+                    onClick={() => setShowPlanModal(false)}
                     className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50"
                   >
                     Cancel
@@ -1081,6 +1298,105 @@ const SubscriptionsContent = () => {
                       </span>
                     ) : (
                       'Create Plan'
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Subscription Modal */}
+      {showSubscriptionModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-slate-900">Assign Subscription</h3>
+                <button
+                  onClick={() => setShowSubscriptionModal(false)}
+                  className="text-slate-400 hover:text-slate-600"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+
+              <form onSubmit={handleSubscriptionSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Select School
+                  </label>
+                  <select
+                    required
+                    value={subscriptionForm.school_id}
+                    onChange={(e) => setSubscriptionForm(prev => ({ ...prev, school_id: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Choose a school</option>
+                    {schools.map((school) => (
+                      <option key={school.id} value={school.id}>
+                        {school.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Select Plan
+                  </label>
+                  <select
+                    required
+                    value={subscriptionForm.plan_id}
+                    onChange={(e) => setSubscriptionForm(prev => ({ ...prev, plan_id: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Choose a plan</option>
+                    {plans.map((plan) => (
+                      <option key={plan.id} value={plan.id}>
+                        {plan.name} - NGN {formatPrice(plan.price)} ({plan.duration_months} months)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Start Date
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={subscriptionForm.start_date}
+                    onChange={(e) => setSubscriptionForm(prev => ({ ...prev, start_date: e.target.value }))}
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setShowSubscriptionModal(false)}
+                    className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={formLoading}
+                    className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {formLoading ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Assigning...
+                      </span>
+                    ) : (
+                      'Assign Subscription'
                     )}
                   </button>
                 </div>

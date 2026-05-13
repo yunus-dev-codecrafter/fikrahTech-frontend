@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
+import SchoolDetail from './pages/SchoolDetail';
 import DashboardLayout from './components/DashboardLayout';
 import Overview from './components/Overview';
 import Schools from './components/Schools';
@@ -14,6 +15,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/admin/schools/:id" element={<SchoolDetail />} />
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<Overview />} />
           <Route path="schools" element={<Schools />} />
