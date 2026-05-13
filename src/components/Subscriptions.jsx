@@ -55,7 +55,7 @@ const Subscriptions = () => {
         name: formData.name.trim(),
         price: parseFloat(formData.price),
         interval: formData.interval,
-        features: formData.features.filter(feature => feature.trim() !== ''),
+        features: formData.features.filter(feature => feature.trim() !== ''), // Send as array, backend will stringify
         is_active: true // Default to active
       };
       
@@ -86,7 +86,8 @@ const Subscriptions = () => {
       } else if (error.response?.status === 500) {
         console.error('Server error - subscription_plans table may be missing');
         console.error('Backend needs: CREATE TABLE IF NOT EXISTS subscription_plans');
-        console.error('Table columns: id (INT AUTO_INCREMENT), name (VARCHAR), price (DECIMAL), interval (VARCHAR), features (TEXT), is_active (BOOLEAN)');
+        console.error('Table columns: id (INT AUTO_INCREMENT), name (VARCHAR), price (DECIMAL), `interval` (VARCHAR), features (LONGTEXT), is_active (BOOLEAN)');
+        console.error('Note: Use JSON.stringify(features) when saving and JSON.parse() when fetching');
       }
     } finally {
       setFormLoading(false);
@@ -161,17 +162,30 @@ const Subscriptions = () => {
                             <span className="text-slate-600">/{plan.interval}</span>
                           </div>
                           <ul className="mt-4 space-y-2">
-                            {Array.isArray(plan.features) ? plan.features.map((feature, index) => (
-                              <li key={index} className="flex items-center text-sm text-slate-600">
-                                <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                                {feature}
-                              </li>
-                            )) : (
-                              <li className="flex items-center text-sm text-slate-600">
-                                <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                                {plan.features}
-                              </li>
-                            )}
+                            {(() => {
+                              let featuresList = [];
+                              try {
+                                // Try to parse if it's a JSON string
+                                featuresList = typeof plan.features === 'string' 
+                                  ? JSON.parse(plan.features) 
+                                  : plan.features;
+                              } catch (e) {
+                                // If parsing fails, treat as single feature or empty array
+                                featuresList = plan.features ? [plan.features] : [];
+                              }
+                              
+                              // Ensure it's an array
+                              if (!Array.isArray(featuresList)) {
+                                featuresList = featuresList ? [featuresList] : [];
+                              }
+                              
+                              return featuresList.map((feature, index) => (
+                                <li key={index} className="flex items-center text-sm text-slate-600">
+                                  <CheckCircle className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                                  {feature}
+                                </li>
+                              ));
+                            })()}
                           </ul>
                         </div>
                         <div className="flex items-center space-x-2 ml-4">
@@ -247,6 +261,7 @@ const Subscriptions = () => {
                   >
                     <option value="monthly">Monthly</option>
                     <option value="yearly">Yearly</option>
+                    <option value="termly">Termly</option>
                   </select>
                 </div>
 
